@@ -60,6 +60,12 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.ItemInfo.ItemStats));
             Add(new CheckBoxOption(settings.ItemInfo.CapChance));
             Add(new CheckBoxOption(settings.ItemInfo.PickupDetails));
+
+            Enabled(settings.SkillInfo.Enabled);
+            Add(new CheckBoxOption(settings.SkillInfo.Cooldown));
+            Add(new CheckBoxOption(settings.SkillInfo.ProcCoefficient));
+            Add(new CheckBoxOption(settings.SkillInfo.ExtraNotes));
+            Add(new CheckBoxOption(settings.SkillInfo.ItemProcs));
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 

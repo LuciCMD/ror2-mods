@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.Text;
 using BepInEx.Logging;
+using JustBeBetter.Shared;
 using RoR2;
 using RoR2.Items;
 
@@ -16,6 +18,10 @@ namespace JustBeBetter.ItemStats
         private const string Faded = "#808080";
 
         private static readonly HashSet<int> brokenStats = new HashSet<int>();
+        private static readonly MethodInfo? cooldownScaleMethod =
+            typeof(Inventory).GetMethod("CalculateEquipmentCooldownScale", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        private static bool cooldownScaleBroken;
         private static ManualLogSource? log;
         private static bool loaded;
         private static bool failed;
@@ -70,6 +76,31 @@ namespace JustBeBetter.ItemStats
             return null;
         }
 
+        // An item as someone holds it, for their inventory, its stats at the count they have
+        // Given the game's text, only its one-liner is swapped, so a Hex item keeps its Hallowed Shrine hint
+        internal static string DescribeHeld(ItemDef item, CharacterMaster? master, bool fullDescription, bool stats, string? gameText = null)
+        {
+            if (gameText == null)
+            {
+                return DescribeItem(item, master, fullDescription, stats, false, string.Empty);
+            }
+
+            var text = new StringBuilder(SwapIn(gameText, item.pickupToken, item.descriptionToken, fullDescription));
+            Inventory? inventory = master != null && master.inventory ? master.inventory : null;
+            if (stats && inventory != null)
+            {
+                int have = inventory.GetItemCountEffective(item.itemIndex);
+                AppendStats(text, item, master!, have, have, string.Empty, true);
+            }
+
+            return text.ToString();
+        }
+
+        internal static string DescribeHeld(EquipmentDef equipment, CharacterMaster? master, bool fullDescription, bool stats)
+        {
+            return DescribeEquipment(equipment, master, fullDescription, stats);
+        }
+
         // For the card shown after a pickup, so the lines are what it just changed, before → after
         // Change is the count change matched to this card, else it's taken as the latest one stack
         // The game's own card text is kept and only its one-liner swapped for the full description, so
@@ -99,7 +130,7 @@ namespace JustBeBetter.ItemStats
                     var text = new StringBuilder(SwapIn(gameText, equipment.pickupToken, equipment.descriptionToken, fullDescription));
                     if (stats)
                     {
-                        AppendEquipmentStats(text, equipment, master);
+                        AppendEquipmentDetails(text, equipment, master);
                     }
 
                     return text.ToString();
@@ -273,10 +304,49 @@ namespace JustBeBetter.ItemStats
             var text = new StringBuilder(Description(equipment.descriptionToken, equipment.pickupToken, fullDescription));
             if (stats)
             {
-                AppendEquipmentStats(text, equipment, master);
+                AppendEquipmentDetails(text, equipment, master);
             }
 
             return text.ToString();
+        }
+
+        // Its stat lines, then its cooldown as the holder has it, in the same block
+        private static void AppendEquipmentDetails(StringBuilder text, EquipmentDef equipment, CharacterMaster? master)
+        {
+            int before = text.Length;
+            AppendEquipmentStats(text, equipment, master);
+            if (equipment.cooldown <= 0f)
+            {
+                return;
+            }
+
+            if (text.Length == before)
+            {
+                text.Append('\n');
+            }
+
+            Inventory? inventory = master != null && master.inventory ? master.inventory : null;
+            CooldownText.Append(text, equipment.cooldown, equipment.cooldown * CooldownScale(inventory));
+        }
+
+        // The game's own scale, Fuel Cells, Gesture, Clarity and the rest, private so read through reflection
+        private static float CooldownScale(Inventory? inventory)
+        {
+            if (inventory == null || cooldownScaleMethod == null || cooldownScaleBroken)
+            {
+                return 1f;
+            }
+
+            try
+            {
+                return cooldownScaleMethod.Invoke(inventory, null) is float scale && scale > 0f ? scale : 1f;
+            }
+            catch (Exception e)
+            {
+                cooldownScaleBroken = true;
+                log?.LogWarning($"Couldn't work out the equipment cooldown, tooltips show the base value: {e}");
+                return 1f;
+            }
         }
 
         private static void AppendEquipmentStats(StringBuilder text, EquipmentDef equipment, CharacterMaster? master)

@@ -5,6 +5,7 @@ using JustBeBetter.Loading;
 using JustBeBetter.Mouse;
 using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
+using JustBeBetter.SkillInfo;
 using JustBeBetter.Sounds;
 
 namespace JustBeBetter
@@ -26,6 +27,7 @@ namespace JustBeBetter
             Safety = new SafetySettings(config);
             Pickers = new PickerSettings(config);
             ItemInfo = new ItemInfoSettings(config);
+            SkillInfo = new SkillInfoSettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -54,6 +56,8 @@ namespace JustBeBetter
         internal PickerSettings Pickers { get; }
 
         internal ItemInfoSettings ItemInfo { get; }
+
+        internal SkillInfoSettings SkillInfo { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 

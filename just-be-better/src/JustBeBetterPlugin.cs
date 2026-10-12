@@ -12,6 +12,7 @@ using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
 using JustBeBetter.Saves;
 using JustBeBetter.Shared;
+using JustBeBetter.SkillInfo;
 using JustBeBetter.Sounds;
 
 namespace JustBeBetter
@@ -39,7 +40,8 @@ namespace JustBeBetter
             StartPart(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
             StartPart(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
             StartPart(settings.Pickers.Enabled, PickerSettings.Section, log => new PickerSearch(settings.Pickers, settings.ItemInfo, log, new Favourites("Item Favourites", log)));
-            StartPart(settings.ItemInfo.Enabled, ItemInfoSettings.Section, log => new PickupDetails(settings.ItemInfo, log));
+            StartPart(settings.ItemInfo.Enabled, ItemInfoSettings.Section, log => new ItemInfoFeature(settings.ItemInfo, log));
+            StartPart(settings.SkillInfo.Enabled, SkillInfoSettings.Section, log => new SkillDetails(settings.SkillInfo, settings.ItemInfo, log));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));

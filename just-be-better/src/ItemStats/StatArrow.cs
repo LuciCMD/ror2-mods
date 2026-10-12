@@ -47,7 +47,8 @@ namespace JustBeBetter.ItemStats
 
             bool inAtlas = font.HasCharacter(Arrow, true);
             bool added = inAtlas || font.HasCharacter(Arrow, true, true);
-            text = added ? $" {Arrow} " : Fallback;
+            // The fallback font draws it long, so it's shrunk and lifted back to the middle of the line
+            text = added ? $" <size=80%><voffset=0.05em>{Arrow}</voffset></size> " : Fallback;
             log.LogInfo(
                 $"Stat arrow in font {font.name} ({font.atlasPopulationMode}): already there {inAtlas}, added from "
                 + $"the font file {added}, so the stats use {(added ? "the arrow" : "\"to\"")}"

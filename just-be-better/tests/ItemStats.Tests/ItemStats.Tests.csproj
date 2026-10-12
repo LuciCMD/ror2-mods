@@ -20,6 +20,9 @@
     <Compile Include="$(Src)\ItemDefinitions.cs" Link="Src\ItemDefinitions.cs" />
     <Compile Include="$(Src)\..\ItemInfo\PickupChanges.cs" Link="Src\PickupChanges.cs" />
     <Compile Include="$(Src)\..\Pickers\WindowFit.cs" Link="Src\WindowFit.cs" />
+    <Compile Include="$(Src)\..\SkillInfo\SkillText.cs" Link="Src\SkillText.cs" />
+    <Compile Include="$(Src)\..\SkillInfo\ProcCoefficientData.cs" Link="Src\ProcCoefficientData.cs" />
+    <Compile Include="$(Src)\..\Shared\CooldownText.cs" Link="Src\CooldownText.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->

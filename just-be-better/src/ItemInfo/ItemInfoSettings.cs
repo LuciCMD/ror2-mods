@@ -18,8 +18,9 @@ namespace JustBeBetter.ItemInfo
             Enabled = Settings.BindEnabled(
                 config,
                 Section,
-                "Shows items' full descriptions and worked-out stats on the pickup card and in the item pickers' "
-                + "tooltips. Off leaves both to the game.");
+                "Shows items' full descriptions and worked-out stats on the pickup card, in the item pickers' "
+                + "tooltips and when you hover an inventory, such as your HUD's or the scoreboard's. Off leaves them "
+                + "to the game.");
 
             FullDescriptions = config.Bind(
                 Section,

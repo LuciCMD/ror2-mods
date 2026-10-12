@@ -68,7 +68,11 @@ internal static partial class Program
         Test("Pickup card for an item held as its void item shows text only", PickupCorruptedTextOnly);
         Test("Pickup card for a Hex keeps the game's Hallowed Shrine hint", PickupHexKeepsSuffix);
         Test("Pickup card uses the change matched to it, not the latest stack", PickupUsesMatchedChange);
+        RunHover();
+        RunSkills();
+        RunSkillEdge();
         RunWindowFit();
+        RunHoverEdge();
     }
 
     private static void Test(string name, Action body)
@@ -514,6 +518,8 @@ internal static partial class Program
 
     // ItemCatalog and the void pairs only fill in a real run, so they get the filled defs and one pair,
     // Tougher Times to Safer Spaces
+    private static readonly FieldInfo AliveField = typeof(UnityEngine.Object).GetField("m_CachedPtr", BindingFlags.Instance | BindingFlags.NonPublic)!;
+
     private static void FillCatalog()
     {
         var defs = new ItemDef[itemNames.Count];
@@ -531,6 +537,9 @@ internal static partial class Program
                         d.descriptionToken = f.Name + "_DESC";
                         d.tags = Array.Empty<ItemTag>();
                         defs[(int)d.itemIndex] = d;
+
+                        // Alive to Unity's null checks, as a loaded game's are
+                        AliveField.SetValue(d, (IntPtr)1);
                     }
                 }
             }
