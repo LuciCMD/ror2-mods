@@ -35,13 +35,13 @@ namespace JustBeBetter
                 Logger.LogInfo("Settings added to Risk Of Options");
             }
 
-            Start(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
-            Start(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
-            Start(settings.PickersEnabled, Settings.PickersSection, log => new PickerSearch(log, new Favourites("Item Favourites", log)));
-            Start(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
-            Start(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
-            Start(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));
-            Start(settings.Sounds.Enabled, SoundSettings.Section, log => new EquipmentSounds(settings.Sounds, log));
+            StartPart(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
+            StartPart(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
+            StartPart(settings.PickersEnabled, Settings.PickersSection, log => new PickerSearch(log, new Favourites("Item Favourites", log)));
+            StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
+            StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
+            StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));
+            StartPart(settings.Sounds.Enabled, SoundSettings.Section, log => new EquipmentSounds(settings.Sounds, log));
         }
 
         private void OnDestroy()
@@ -61,7 +61,7 @@ namespace JustBeBetter
         }
 
         // Each part logs under its own name, and one that fails to start leaves the others running
-        private void Start(ConfigEntry<bool> enabled, string name, Func<ManualLogSource, IFeature> create)
+        private void StartPart(ConfigEntry<bool> enabled, string name, Func<ManualLogSource, IFeature> create)
         {
             if (!enabled.Value)
             {
