@@ -45,6 +45,7 @@
     <Reference Include="AK.Wwise.Unity.API" HintPath="$(GameManaged)\AK.Wwise.Unity.API.dll" Private="false" />
     <Reference Include="AK.Wwise.Unity.MonoBehaviour" HintPath="$(GameManaged)\AK.Wwise.Unity.MonoBehaviour.dll" Private="false" />
     <Reference Include="com.unity.multiplayer-hlapi.Runtime" HintPath="$(GameManaged)\com.unity.multiplayer-hlapi.Runtime.dll" Private="false" />
+    <Reference Include="Rewired_Core" HintPath="$(GameManaged)\Rewired_Core.dll" Private="false" />
     <Reference Include="HGCSharpUtils" HintPath="$(GameManaged)\HGCSharpUtils.dll" Private="false" />
     <Reference Include="BepInEx" HintPath="$(ProfileDir)\BepInEx\core\BepInEx.dll" Private="false" />
     <Reference Include="Mono.Cecil" HintPath="$(ProfileDir)\BepInEx\core\Mono.Cecil.dll" Private="false" />

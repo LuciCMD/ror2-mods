@@ -27,6 +27,7 @@ namespace JustBeBetter.Pickers
         private PickupPickerPanel? panel;
         private Favourites? favourites;
         private RectTransform? bar;
+        private TMP_InputField? searchField;
         private bool automaticNavigation;
         private string[] words = Array.Empty<string>();
 
@@ -43,6 +44,8 @@ namespace JustBeBetter.Pickers
 
             return filter;
         }
+
+        internal bool IsTyping => searchField != null && searchField.isFocused;
 
         internal void Clear()
         {
@@ -189,9 +192,9 @@ namespace JustBeBetter.Pickers
 
             TMP_FontAsset? font = panel!.GetComponentsInChildren<TextMeshProUGUI>(true).Select(t => t.font).FirstOrDefault(f => f);
             Image? style = panel.GetComponentsInChildren<Image>(true).FirstOrDefault(i => i.sprite && i.type == Image.Type.Sliced);
-            TMP_InputField field = SearchField.Create(bar, style, font, "Search Items", SetQuery);
-            field.onSelect.AddListener(_ => PauseClosers());
-            field.onDeselect.AddListener(_ => ResumeClosers());
+            searchField = SearchField.Create(bar, style, font, "Search Items", SetQuery);
+            searchField.onSelect.AddListener(_ => PauseClosers());
+            searchField.onDeselect.AddListener(_ => ResumeClosers());
             PlaceBar();
         }
 

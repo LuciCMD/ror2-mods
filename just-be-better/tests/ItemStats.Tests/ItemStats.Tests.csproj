@@ -19,6 +19,7 @@
     <Compile Include="$(Src)\Utils.cs" Link="Src\Utils.cs" />
     <Compile Include="$(Src)\ItemDefinitions.cs" Link="Src\ItemDefinitions.cs" />
     <Compile Include="$(Src)\..\ItemInfo\PickupChanges.cs" Link="Src\PickupChanges.cs" />
+    <Compile Include="$(Src)\..\Pickers\WindowFit.cs" Link="Src\WindowFit.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->

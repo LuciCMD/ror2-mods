@@ -6,6 +6,7 @@ namespace JustBeBetter.Pickers
     internal sealed class PickerSettings
     {
         internal const string Section = "Item Pickers";
+        internal const int MaxItemsPerRow = 30;
 
         internal PickerSettings(ConfigFile config)
         {
@@ -18,7 +19,7 @@ namespace JustBeBetter.Pickers
                 config,
                 Section,
                 "Adds a search box, favourite stars, item counts and tooltips to every item picker, such as the "
-                + "Command menu and the Scrapper.");
+                + "Command menu and the Scrapper, and lets you size, see through and close its window.");
 
             ItemCounts = config.Bind(
                 Section,
@@ -47,6 +48,44 @@ namespace JustBeBetter.Pickers
                 "Shows each item's tooltip on hover even with the game's Inspect option off. Off leaves it to "
                 + "that option. What the tooltip says is set under Item Info, its stats show what picking the item "
                 + "would give, and the Scrapper shows them as they are now.");
+
+            FitBigLists = config.Bind(
+                Section,
+                "Fit Big Lists",
+                true,
+                "Grows the picker window when it has more items than fit, and makes the buttons smaller once it "
+                + "fills most of the screen, so every item shows without scrolling.");
+
+            ItemsPerRow = config.Bind(
+                Section,
+                "Items per Row",
+                0,
+                new ConfigDescription(
+                    "How many items a row holds before the next row starts, as far as the screen's width allows. 0 "
+                    + "keeps lists the game's window holds as they are and makes bigger ones roughly square.",
+                    new AcceptableValueRange<int>(0, MaxItemsPerRow)));
+
+            WindowBlur = config.Bind(
+                Section,
+                "Window Blur",
+                true,
+                "Blurs the game behind the picker window, as the game does. Off shows the game sharp behind it.");
+
+            WindowOpacity = config.Bind(
+                Section,
+                "Window Opacity",
+                100,
+                new ConfigDescription(
+                    "How solid the picker window's background is, as a percentage of the game's own. Lower lets "
+                    + "more of the game show through.",
+                    new AcceptableValueRange<int>(0, 100)));
+
+            CloseOnMovement = config.Bind(
+                Section,
+                "Close on Movement",
+                true,
+                "Closes the picker when you move, jump or sprint, using your own key bindings. Not while typing "
+                + "in the search box, and not with a controller, where the stick moves around the picker.");
         }
 
         internal ConfigEntry<bool> Enabled { get; }
@@ -58,5 +97,15 @@ namespace JustBeBetter.Pickers
         internal ConfigEntry<bool> CorruptedMark { get; }
 
         internal ConfigEntry<bool> HoverTooltips { get; }
+
+        internal ConfigEntry<bool> FitBigLists { get; }
+
+        internal ConfigEntry<int> ItemsPerRow { get; }
+
+        internal ConfigEntry<bool> WindowBlur { get; }
+
+        internal ConfigEntry<int> WindowOpacity { get; }
+
+        internal ConfigEntry<bool> CloseOnMovement { get; }
     }
 }

@@ -14,7 +14,7 @@ using Path = System.IO.Path;
 
 // Runs the ported stat table and our tooltip text outside the game, against the installed game's assemblies
 // Covers the numbers and the text, not anything drawn on screen
-internal static class Program
+internal static partial class Program
 {
     // Past this a few items overflow, Shaped Glass reaches infinity at 128
     private const int MaxStacks = 100;
@@ -68,6 +68,7 @@ internal static class Program
         Test("Pickup card for an item held as its void item shows text only", PickupCorruptedTextOnly);
         Test("Pickup card for a Hex keeps the game's Hallowed Shrine hint", PickupHexKeepsSuffix);
         Test("Pickup card uses the change matched to it, not the latest stack", PickupUsesMatchedChange);
+        RunWindowFit();
     }
 
     private static void Test(string name, Action body)

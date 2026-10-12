@@ -49,6 +49,11 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Pickers.HideZeroCounts));
             Add(new CheckBoxOption(settings.Pickers.CorruptedMark));
             Add(new CheckBoxOption(settings.Pickers.HoverTooltips));
+            Add(new CheckBoxOption(settings.Pickers.FitBigLists));
+            Add(new IntSliderOption(settings.Pickers.ItemsPerRow, new IntSliderConfig { min = 0, max = Pickers.PickerSettings.MaxItemsPerRow }));
+            Add(new CheckBoxOption(settings.Pickers.WindowBlur));
+            Add(new IntSliderOption(settings.Pickers.WindowOpacity, Percent()));
+            Add(new CheckBoxOption(settings.Pickers.CloseOnMovement));
 
             Enabled(settings.ItemInfo.Enabled);
             Add(new CheckBoxOption(settings.ItemInfo.FullDescriptions));

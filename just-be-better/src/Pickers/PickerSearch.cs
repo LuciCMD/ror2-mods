@@ -77,7 +77,25 @@ namespace JustBeBetter.Pickers
 
         private void OnSetPickupOptions(On.RoR2.UI.PickupPickerPanel.orig_SetPickupOptions orig, PickupPickerPanel self, PickupPickerController.Option[] options)
         {
+            try
+            {
+                PickerWindow.For(self, settings, log).Fit(options?.Length ?? 0);
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Couldn't fit the item picker's window to its items: {e}");
+            }
+
             orig(self, options);
+            try
+            {
+                PickerWindow.For(self, settings, log).AfterSetup();
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Couldn't keep the item picker's window at its fitted size: {e}");
+            }
+
             try
             {
                 Attach(self);
@@ -94,6 +112,24 @@ namespace JustBeBetter.Pickers
             catch (Exception e)
             {
                 log.LogError($"Couldn't add item counts and tooltips to the item picker: {e}");
+            }
+
+            try
+            {
+                PickerWindow.For(self, settings, log).ApplyLook();
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Couldn't set the item picker window's blur and opacity: {e}");
+            }
+
+            try
+            {
+                PickerCloser.Attach(self, settings, log);
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Couldn't let movement close the item picker: {e}");
             }
         }
 
