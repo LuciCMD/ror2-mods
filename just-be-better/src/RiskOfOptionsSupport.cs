@@ -44,7 +44,10 @@ namespace JustBeBetter
                     FormatString = "{0:0.0} s",
                 }));
 
-            Enabled(settings.PickersEnabled);
+            Enabled(settings.Pickers.Enabled);
+            Add(new CheckBoxOption(settings.Pickers.ItemCounts));
+            Add(new CheckBoxOption(settings.Pickers.HideZeroCounts));
+            Add(new CheckBoxOption(settings.Pickers.CorruptedMark));
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 

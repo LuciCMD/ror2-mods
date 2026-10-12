@@ -38,6 +38,7 @@
     <Reference Include="UnityEngine.TextRenderingModule" HintPath="$(GameManaged)\UnityEngine.TextRenderingModule.dll" Private="false" />
     <Reference Include="UnityEngine.ImageConversionModule" HintPath="$(GameManaged)\UnityEngine.ImageConversionModule.dll" Private="false" />
     <Reference Include="Unity.TextMeshPro" HintPath="$(GameManaged)\Unity.TextMeshPro.dll" Private="false" />
+    <Reference Include="Unity.Addressables" HintPath="$(GameManaged)\Unity.Addressables.dll" Private="false" />
     <Reference Include="Unity.Postprocessing.Runtime" HintPath="$(GameManaged)\Unity.Postprocessing.Runtime.dll" Private="false" />
     <Reference Include="AK.Wwise.Unity.API" HintPath="$(GameManaged)\AK.Wwise.Unity.API.dll" Private="false" />
     <Reference Include="AK.Wwise.Unity.MonoBehaviour" HintPath="$(GameManaged)\AK.Wwise.Unity.MonoBehaviour.dll" Private="false" />

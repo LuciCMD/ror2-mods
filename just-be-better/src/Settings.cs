@@ -2,6 +2,7 @@ using System;
 using BepInEx.Configuration;
 using JustBeBetter.Loading;
 using JustBeBetter.Mouse;
+using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
 using JustBeBetter.Sounds;
 
@@ -11,7 +12,6 @@ namespace JustBeBetter
     // at all, so it can't clash with another mod doing the same job
     internal sealed class Settings
     {
-        internal const string PickersSection = "Item Pickers";
         internal const string LobbySection = "Lobby";
         internal const string SavesSection = "Saves";
 
@@ -23,10 +23,7 @@ namespace JustBeBetter
             }
 
             Safety = new SafetySettings(config);
-            PickersEnabled = BindEnabled(
-                config,
-                PickersSection,
-                "Adds a search box and favourite stars to every item picker, such as the Command menu and the Scrapper.");
+            Pickers = new PickerSettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -52,7 +49,7 @@ namespace JustBeBetter
 
         internal SafetySettings Safety { get; }
 
-        internal ConfigEntry<bool> PickersEnabled { get; }
+        internal PickerSettings Pickers { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 

@@ -8,22 +8,24 @@ using RoR2.UI;
 
 namespace JustBeBetter.Pickers
 {
-    // Search and favourites for every item picker built on PickupPickerPanel: the Command artifact, the
-    // Scrapper, Potentials and the rest
+    // Search, favourites and item counts for every item picker built on PickupPickerPanel: the Command
+    // artifact, the Scrapper, Potentials and the rest
     // The panel binds each button to its option index when it creates it, so buttons are only hidden and
     // reordered, never rebound, and the choice sent to the server is unchanged
     internal sealed class PickerSearch : IFeature
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
 
+        private readonly PickerSettings settings;
         private readonly ManualLogSource log;
         private readonly Favourites favourites;
         private FieldInfo? buttonsField;
         private FieldInfo? optionsField;
         private FieldInfo? automaticNavigationField;
 
-        internal PickerSearch(ManualLogSource log, Favourites favourites)
+        internal PickerSearch(PickerSettings settings, ManualLogSource log, Favourites favourites)
         {
+            this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
             this.favourites = favourites ?? throw new ArgumentNullException(nameof(favourites));
         }
@@ -59,6 +61,15 @@ namespace JustBeBetter.Pickers
             {
                 log.LogError($"Couldn't add search to the item picker: {e}");
             }
+
+            try
+            {
+                AttachCounts(self);
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Couldn't add item counts to the item picker: {e}");
+            }
         }
 
         private void Attach(PickupPickerPanel panel)
@@ -82,6 +93,27 @@ namespace JustBeBetter.Pickers
             }
 
             filter.Apply();
+        }
+
+        private void AttachCounts(PickupPickerPanel panel)
+        {
+            var allocator = buttonsField!.GetValue(panel) as UIElementAllocator<MPButton>;
+            var options = optionsField!.GetValue(panel) as PickupPickerController.Option[];
+            if (allocator == null || options == null)
+            {
+                return;
+            }
+
+            ReadOnlyCollection<MPButton> elements = allocator.elements;
+            PickerCounts counts = PickerCounts.For(panel, settings, log);
+            counts.Clear();
+            int count = Math.Min(elements.Count, options.Length);
+            for (int i = 0; i < count; i++)
+            {
+                counts.Add(elements[i], PickupCatalog.GetPickupDef(options[i].pickup.pickupIndex));
+            }
+
+            counts.Refresh();
         }
     }
 }

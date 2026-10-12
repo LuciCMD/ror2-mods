@@ -37,7 +37,7 @@ namespace JustBeBetter
 
             StartPart(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
             StartPart(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
-            StartPart(settings.PickersEnabled, Settings.PickersSection, log => new PickerSearch(log, new Favourites("Item Favourites", log)));
+            StartPart(settings.Pickers.Enabled, PickerSettings.Section, log => new PickerSearch(settings.Pickers, log, new Favourites("Item Favourites", log)));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));
