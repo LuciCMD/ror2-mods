@@ -17,7 +17,8 @@ namespace JustBeBetter.Pickers
             Enabled = Settings.BindEnabled(
                 config,
                 Section,
-                "Adds a search box, favourite stars and item counts to every item picker, such as the Command menu and the Scrapper.");
+                "Adds a search box, favourite stars, item counts and tooltips to every item picker, such as the "
+                + "Command menu and the Scrapper.");
 
             ItemCounts = config.Bind(
                 Section,
@@ -38,6 +39,14 @@ namespace JustBeBetter.Pickers
                 true,
                 "Shows the void item's icon on an item it would corrupt, since picking that item gives you more of "
                 + "the void item instead.");
+
+            HoverTooltips = config.Bind(
+                Section,
+                "Hover Tooltips",
+                true,
+                "Shows each item's tooltip on hover even with the game's Inspect option off. Off leaves it to "
+                + "that option. What the tooltip says is set under Item Info, its stats show what picking the item "
+                + "would give, and the Scrapper shows them as they are now.");
         }
 
         internal ConfigEntry<bool> Enabled { get; }
@@ -47,5 +56,7 @@ namespace JustBeBetter.Pickers
         internal ConfigEntry<bool> HideZeroCounts { get; }
 
         internal ConfigEntry<bool> CorruptedMark { get; }
+
+        internal ConfigEntry<bool> HoverTooltips { get; }
     }
 }

@@ -17,10 +17,12 @@
     <GenerateDependencyFile>false</GenerateDependencyFile>
   </PropertyGroup>
 
-  <!-- The patcher is its own project -->
+  <!-- The patcher and the tests are their own projects -->
   <ItemGroup>
     <Compile Remove="patcher/**" />
     <None Remove="patcher/**" />
+    <Compile Remove="tests/**" />
+    <None Remove="tests/**" />
   </ItemGroup>
 
   <PropertyGroup>

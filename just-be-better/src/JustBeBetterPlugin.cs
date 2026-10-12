@@ -4,6 +4,7 @@ using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Lobby;
 using JustBeBetter.Mouse;
@@ -37,7 +38,8 @@ namespace JustBeBetter
 
             StartPart(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
             StartPart(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
-            StartPart(settings.Pickers.Enabled, PickerSettings.Section, log => new PickerSearch(settings.Pickers, log, new Favourites("Item Favourites", log)));
+            StartPart(settings.Pickers.Enabled, PickerSettings.Section, log => new PickerSearch(settings.Pickers, settings.ItemInfo, log, new Favourites("Item Favourites", log)));
+            StartPart(settings.ItemInfo.Enabled, ItemInfoSettings.Section, log => new PickupDetails(settings.ItemInfo, log));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));

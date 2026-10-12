@@ -48,6 +48,13 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Pickers.ItemCounts));
             Add(new CheckBoxOption(settings.Pickers.HideZeroCounts));
             Add(new CheckBoxOption(settings.Pickers.CorruptedMark));
+            Add(new CheckBoxOption(settings.Pickers.HoverTooltips));
+
+            Enabled(settings.ItemInfo.Enabled);
+            Add(new CheckBoxOption(settings.ItemInfo.FullDescriptions));
+            Add(new CheckBoxOption(settings.ItemInfo.ItemStats));
+            Add(new CheckBoxOption(settings.ItemInfo.CapChance));
+            Add(new CheckBoxOption(settings.ItemInfo.PickupDetails));
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 

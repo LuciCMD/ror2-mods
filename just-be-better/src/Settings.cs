@@ -1,5 +1,6 @@
 using System;
 using BepInEx.Configuration;
+using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Mouse;
 using JustBeBetter.Pickers;
@@ -24,6 +25,7 @@ namespace JustBeBetter
 
             Safety = new SafetySettings(config);
             Pickers = new PickerSettings(config);
+            ItemInfo = new ItemInfoSettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -50,6 +52,8 @@ namespace JustBeBetter
         internal SafetySettings Safety { get; }
 
         internal PickerSettings Pickers { get; }
+
+        internal ItemInfoSettings ItemInfo { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 
