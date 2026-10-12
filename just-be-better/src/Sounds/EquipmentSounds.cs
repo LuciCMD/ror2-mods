@@ -9,8 +9,9 @@ using UnityEngine;
 namespace JustBeBetter.Sounds
 {
     // Every sound the game posts on a GameObject passes through here
-    // The chime, the listed equipment events, and anything posted on the user's own body while its equipment
-    // is being performed are posted on a quiet child emitter instead, the rest untouched
+    // The chime, the listed equipment events, anything posted on the user's own body while its equipment
+    // is being performed, and anything a projectile fired by equipment plays are posted on a quiet child emitter
+    // instead, the rest untouched
     // Posts by raw Wwise object ID (no GameObject) can't be moved and are left alone
     internal sealed class EquipmentSounds : IFeature
     {
@@ -24,6 +25,15 @@ namespace JustBeBetter.Sounds
         // so the event can't be listed, but on the user's body at that moment it can only be the equipment's
         private static GameObject? performer;
 
+        // Above zero while equipment fires, including the Missile Launcher's missiles that follow over the next
+        // moments, so its projectiles can be told from the same projectile fired by an item, such as AtG's missiles
+        // Projectiles are only made here when hosting or alone, a client's come over the network unmarked
+        private static int firing;
+
+        // Each kind of projectile is logged the first time it's quietened, so a test run shows it worked
+        private static readonly HashSet<string> MarkedKinds = new HashSet<string>();
+        private static ManualLogSource? markLog;
+
         private readonly ManualLogSource log;
         private readonly List<Hook> hooks = new List<Hook>();
 
@@ -31,11 +41,14 @@ namespace JustBeBetter.Sounds
         {
             EquipmentSounds.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
+            markLog = log;
         }
 
         public void Enable()
         {
             On.RoR2.EquipmentSlot.PerformEquipmentAction += OnPerform;
+            On.RoR2.EquipmentSlot.FireMissile += OnFireMissile;
+            On.RoR2.Projectile.ProjectileManager.InitializeProjectile += OnInitializeProjectile;
             Type engine = typeof(AkSoundEngine);
             Type callback = typeof(AkCallbackManager.EventCallback);
             Add(engine.GetMethod(nameof(AkSoundEngine.PostEvent), new[] { typeof(string), typeof(GameObject) }), nameof(PostName));
@@ -52,6 +65,8 @@ namespace JustBeBetter.Sounds
         public void Disable()
         {
             On.RoR2.EquipmentSlot.PerformEquipmentAction -= OnPerform;
+            On.RoR2.EquipmentSlot.FireMissile -= OnFireMissile;
+            On.RoR2.Projectile.ProjectileManager.InitializeProjectile -= OnInitializeProjectile;
             foreach (Hook hook in hooks)
             {
                 hook.Dispose();
@@ -75,6 +90,7 @@ namespace JustBeBetter.Sounds
         {
             GameObject? outer = performer;
             performer = self ? self.gameObject : null;
+            firing++;
             try
             {
                 return orig(self, def);
@@ -82,6 +98,37 @@ namespace JustBeBetter.Sounds
             finally
             {
                 performer = outer;
+                firing--;
+            }
+        }
+
+        private static void OnFireMissile(On.RoR2.EquipmentSlot.orig_FireMissile orig, EquipmentSlot self)
+        {
+            firing++;
+            try
+            {
+                orig(self);
+            }
+            finally
+            {
+                firing--;
+            }
+        }
+
+        // The projectile is made inside this call, before any of its sounds start
+        private static void OnInitializeProjectile(
+            On.RoR2.Projectile.ProjectileManager.orig_InitializeProjectile orig,
+            RoR2.Projectile.ProjectileController controller,
+            RoR2.Projectile.FireProjectileInfo info)
+        {
+            orig(controller, info);
+            if (firing > 0 && controller && !controller.TryGetComponent(out EquipmentProjectile _))
+            {
+                controller.gameObject.AddComponent<EquipmentProjectile>();
+                if (MarkedKinds.Add(controller.name))
+                {
+                    markLog?.LogDebug($"Sounds from {controller.name} fired by equipment are quietened");
+                }
             }
         }
 
@@ -99,7 +146,7 @@ namespace JustBeBetter.Sounds
             }
 
             bool listed = EquipmentEvents.Contains(id) && !(id == EquipmentEvents.FruitId && go.GetComponent<CharacterBody>());
-            if (!listed && !(performer && go == performer))
+            if (!listed && !(performer && go == performer) && !go.TryGetComponent(out EquipmentProjectile _))
             {
                 return go;
             }
