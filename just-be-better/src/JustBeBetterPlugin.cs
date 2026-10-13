@@ -13,6 +13,7 @@ using JustBeBetter.Mouse;
 using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
 using JustBeBetter.Saves;
+using JustBeBetter.Scoreboard;
 using JustBeBetter.Shared;
 using JustBeBetter.SkillInfo;
 using JustBeBetter.StatsDisplay;
@@ -48,6 +49,7 @@ namespace JustBeBetter
             StartPart(settings.Cooldowns.Enabled, CooldownSettings.Section, log => new CooldownTimers(settings.Cooldowns, log));
             StartPart(settings.Buffs.Enabled, BuffInfoSettings.Section, log => new BuffDetails(settings.Buffs, log));
             StartPart(settings.Stats.Enabled, StatsDisplaySettings.Section, log => new StatsPanel(settings.Stats, log));
+            StartPart(settings.Scoreboard.Enabled, ScoreboardSettings.Section, log => new ItemCounters(settings.Scoreboard, log));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));

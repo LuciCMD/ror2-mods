@@ -85,6 +85,8 @@ internal static partial class Program
         RunBuffEdge();
         RunStats();
         RunStatsEdge();
+        RunScoreboard();
+        RunScoreboardEdge();
     }
 
     private static void Test(string name, Action body)

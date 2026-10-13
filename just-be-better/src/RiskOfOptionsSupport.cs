@@ -102,6 +102,16 @@ namespace JustBeBetter
                     FormatString = "{0:0} s",
                 }));
 
+            // Greyed out while they'd have no effect, as LookingGlass did
+            Scoreboard.ScoreboardSettings scoreboard = settings.Scoreboard;
+            Enabled(scoreboard.Enabled);
+            Add(new CheckBoxOption(scoreboard.TierCounts));
+            Add(new CheckBoxOption(scoreboard.TempTotal, new CheckBoxConfig { checkIfDisabled = () => scoreboard.CountTempWithPermanent.Value }));
+            Add(new CheckBoxOption(
+                scoreboard.TempPerTier,
+                new CheckBoxConfig { checkIfDisabled = () => !scoreboard.TierCounts.Value || scoreboard.CountTempWithPermanent.Value }));
+            Add(new CheckBoxOption(scoreboard.CountTempWithPermanent));
+
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 

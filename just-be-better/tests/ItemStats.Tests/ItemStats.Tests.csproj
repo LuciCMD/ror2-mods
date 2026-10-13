@@ -32,6 +32,7 @@
     <Compile Include="$(Src)\..\StatsDisplay\StatTemplate.cs" Link="Src\StatTemplate.cs" />
     <Compile Include="$(Src)\..\StatsDisplay\StatMath.cs" Link="Src\StatMath.cs" />
     <Compile Include="$(Src)\..\StatsDisplay\ComboMeter.cs" Link="Src\ComboMeter.cs" />
+    <Compile Include="$(Src)\..\Scoreboard\CounterText.cs" Link="Src\CounterText.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->
