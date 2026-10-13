@@ -7,6 +7,7 @@ using BepInEx.Logging;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
+using TMPro;
 using UnityEngine;
 
 namespace JustBeBetter
@@ -85,6 +86,22 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Buffs.OneDecimal));
             Add(new CheckBoxOption(settings.Buffs.Descriptions));
 
+            Enabled(settings.Stats.Enabled);
+            Add(new StringInputFieldOption(settings.Stats.MainText, TemplateField()));
+            Add(new StringInputFieldOption(settings.Stats.TabText, TemplateField()));
+            Add(new CheckBoxOption(settings.Stats.StatColours));
+            Add(new IntSliderOption(settings.Stats.DecimalPlaces, new IntSliderConfig { min = 0, max = StatsDisplay.StatsDisplaySettings.MaxDecimals }));
+            Add(new IntSliderOption(settings.Stats.FontSize, new IntSliderConfig { min = 0, max = StatsDisplay.StatsDisplaySettings.MaxFontSize }));
+            Add(new StepSliderOption(
+                settings.Stats.DpsWindow,
+                new StepSliderConfig
+                {
+                    min = StatsDisplay.StatsDisplaySettings.MinDpsWindow,
+                    max = StatsDisplay.StatsDisplaySettings.MaxDpsWindow,
+                    increment = 1f,
+                    FormatString = "{0:0} s",
+                }));
+
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 
@@ -105,6 +122,17 @@ namespace JustBeBetter
         private static void Enabled(ConfigEntry<bool> entry)
         {
             Add(new CheckBoxOption(entry, new CheckBoxConfig { restartRequired = true }));
+        }
+
+        // Several lines, with the tags shown as typed rather than drawn, saved when the field is left
+        private static InputFieldConfig TemplateField()
+        {
+            return new InputFieldConfig
+            {
+                lineType = TMP_InputField.LineType.MultiLineNewline,
+                submitOn = InputFieldConfig.SubmitEnum.OnExitOrSubmit,
+                richText = false,
+            };
         }
 
         private static IntSliderConfig Percent()

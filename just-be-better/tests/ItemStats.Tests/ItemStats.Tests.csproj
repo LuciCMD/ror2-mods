@@ -29,6 +29,9 @@
     <Compile Include="$(Src)\..\SkillInfo\SkillText.cs" Link="Src\SkillText.cs" />
     <Compile Include="$(Src)\..\SkillInfo\ProcCoefficientData.cs" Link="Src\ProcCoefficientData.cs" />
     <Compile Include="$(Src)\..\Shared\CooldownText.cs" Link="Src\CooldownText.cs" />
+    <Compile Include="$(Src)\..\StatsDisplay\StatTemplate.cs" Link="Src\StatTemplate.cs" />
+    <Compile Include="$(Src)\..\StatsDisplay\StatMath.cs" Link="Src\StatMath.cs" />
+    <Compile Include="$(Src)\..\StatsDisplay\ComboMeter.cs" Link="Src\ComboMeter.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->

@@ -8,6 +8,7 @@ using JustBeBetter.Mouse;
 using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
 using JustBeBetter.SkillInfo;
+using JustBeBetter.StatsDisplay;
 using JustBeBetter.Sounds;
 
 namespace JustBeBetter
@@ -32,6 +33,7 @@ namespace JustBeBetter
             SkillInfo = new SkillInfoSettings(config);
             Cooldowns = new CooldownSettings(config);
             Buffs = new BuffInfoSettings(config);
+            Stats = new StatsDisplaySettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -66,6 +68,8 @@ namespace JustBeBetter
         internal CooldownSettings Cooldowns { get; }
 
         internal BuffInfoSettings Buffs { get; }
+
+        internal StatsDisplaySettings Stats { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 

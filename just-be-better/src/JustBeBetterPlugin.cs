@@ -15,6 +15,7 @@ using JustBeBetter.Safety;
 using JustBeBetter.Saves;
 using JustBeBetter.Shared;
 using JustBeBetter.SkillInfo;
+using JustBeBetter.StatsDisplay;
 using JustBeBetter.Sounds;
 
 namespace JustBeBetter
@@ -46,6 +47,7 @@ namespace JustBeBetter
             StartPart(settings.SkillInfo.Enabled, SkillInfoSettings.Section, log => new SkillDetails(settings.SkillInfo, settings.ItemInfo, log));
             StartPart(settings.Cooldowns.Enabled, CooldownSettings.Section, log => new CooldownTimers(settings.Cooldowns, log));
             StartPart(settings.Buffs.Enabled, BuffInfoSettings.Section, log => new BuffDetails(settings.Buffs, log));
+            StartPart(settings.Stats.Enabled, StatsDisplaySettings.Section, log => new StatsPanel(settings.Stats, log));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));

@@ -29,6 +29,9 @@ namespace JustBeBetter.BuffInfo
         // Tooltips we added, the only ones turned off with Buff Descriptions
         private readonly ConditionalWeakTable<BuffIcon, TooltipProvider> tooltips = new ConditionalWeakTable<BuffIcon, TooltipProvider>();
 
+        // Logged once per name, as copies of one bar share it
+        private readonly HashSet<string> hoverCanvases = new HashSet<string>(StringComparer.Ordinal);
+
         private FieldInfo? sourceField;
         private FieldInfo? iconsField;
         private FieldInfo? iconField;
@@ -235,6 +238,12 @@ namespace JustBeBetter.BuffInfo
         // parent's raycaster, and the HUD's buff bar sits in LevelDisplayCluster's, which has none
         private bool CanHover(BuffIcon icon)
         {
+            // Enemies' overhead bars show buffs too, a canvas each, but no one points at them
+            if (icon.GetComponentInParent<CombatHealthBarViewer>())
+            {
+                return false;
+            }
+
             Canvas canvas = icon.GetComponentInParent<Canvas>();
             if (!canvas)
             {
@@ -244,7 +253,10 @@ namespace JustBeBetter.BuffInfo
             if (!canvas.GetComponent<GraphicRaycaster>())
             {
                 canvas.gameObject.AddComponent<GraphicRaycaster>();
-                log.LogDebug($"Added pointer events to {canvas.name} so its buff icons can show descriptions");
+                if (hoverCanvases.Add(canvas.name))
+                {
+                    log.LogDebug($"Added pointer events to {canvas.name} so its buff icons can show descriptions");
+                }
             }
 
             return true;
