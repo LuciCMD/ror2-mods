@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using BepInEx.Configuration;
 using JustBeBetter.Shared;
 using RoR2.UI;
 using TMPro;
@@ -10,9 +11,9 @@ using UnityEngine.UI;
 namespace JustBeBetter.Pickers
 {
     // Lives on an item picker panel: a search box just above its grid, buttons hidden when they don't match,
-    // favourites moved to the front
-    // Other mods (LookingGlass) may sort the grid after us, so the favourites-first order is checked each
-    // frame and restored, keeping their order otherwise
+    // favourites moved to the front, the rest sorted as set for the Command menu and Scrapper
+    // The order is checked each frame and restored, so a setting change shows at once
+    // LookingGlass sorts the options before the panel gets them, so its order is the game's order here
     internal sealed class PickerFilter : MonoBehaviour
     {
         private const float BarHeight = 36f;
@@ -26,12 +27,16 @@ namespace JustBeBetter.Pickers
         private readonly List<Behaviour> pausedClosers = new List<Behaviour>();
         private PickupPickerPanel? panel;
         private Favourites? favourites;
+        private ConfigEntry<PickerOrder>? sorting;
+        private List<Entry>? arranged;
+        private PickerOrder arrangedFor;
         private RectTransform? bar;
         private TMP_InputField? searchField;
         private bool automaticNavigation;
         private string[] words = Array.Empty<string>();
 
-        internal static PickerFilter For(PickupPickerPanel panel, Favourites favourites, bool automaticNavigation)
+        // No sorting setting keeps the game's order after the favourites
+        internal static PickerFilter For(PickupPickerPanel panel, Favourites favourites, bool automaticNavigation, ConfigEntry<PickerOrder>? sorting)
         {
             if (!panel.TryGetComponent(out PickerFilter filter))
             {
@@ -42,6 +47,7 @@ namespace JustBeBetter.Pickers
                 filter.BuildBar();
             }
 
+            filter.sorting = sorting;
             return filter;
         }
 
@@ -50,11 +56,14 @@ namespace JustBeBetter.Pickers
         internal void Clear()
         {
             entries.Clear();
+            arranged = null;
         }
 
-        internal void Add(MPButton button, string? key, string text)
+        // In the game's order, with the count as it is now so buttons don't move under the cursor
+        internal void Add(MPButton button, string? key, string text, string name, int tierRank, int count)
         {
-            entries.Add(new Entry(button, key, text));
+            entries.Add(new Entry(button, key, text, name, tierRank, count));
+            arranged = null;
             FavouriteMark.Attach(button.gameObject, () => favourites!.Contains(key), () => Toggle(key), true);
         }
 
@@ -78,6 +87,7 @@ namespace JustBeBetter.Pickers
         private void Toggle(string? key)
         {
             favourites?.Toggle(key);
+            arranged = null;
             foreach (Entry entry in entries)
             {
                 if (entry.Button)
@@ -114,22 +124,33 @@ namespace JustBeBetter.Pickers
             return favourites != null && favourites.Contains(entry.Key);
         }
 
-        // Favourites before the rest, each group in the order the grid already has
         private bool InOrder()
         {
-            bool seenOther = false;
-            foreach (Entry entry in Sorted())
-            {
-                bool favourite = IsFavourite(entry);
-                if (favourite && seenOther)
-                {
-                    return false;
-                }
+            return Wanted().Select(e => e.Button).SequenceEqual(Sorted().Select(e => e.Button));
+        }
 
-                seenOther |= !favourite;
+        // Unsorted pickers keep whatever order the grid has, as before sorting existed
+        // A sorted order is kept until its inputs change, as name comparisons every frame are slow on Mono
+        private List<Entry> Wanted()
+        {
+            if (sorting == null)
+            {
+                return Arranged(Sorted(), PickerOrder.GamesOrder);
             }
 
-            return true;
+            if (arranged == null || arrangedFor != sorting.Value)
+            {
+                arrangedFor = sorting.Value;
+                arranged = Arranged(entries.Where(e => e.Button).ToList(), arrangedFor);
+            }
+
+            return arranged.Where(e => e.Button).ToList();
+        }
+
+        private List<Entry> Arranged(List<Entry> live, PickerOrder order)
+        {
+            List<SortKey> keys = live.Select(e => new SortKey(e.Name, e.TierRank, e.Count, IsFavourite(e))).ToList();
+            return PickerSort.Arrange(keys, order).Select(i => live[i]).ToList();
         }
 
         private List<Entry> Sorted()
@@ -141,7 +162,7 @@ namespace JustBeBetter.Pickers
         {
             List<Entry> current = Sorted();
             List<int> slots = current.Select(e => e.Button.transform.GetSiblingIndex()).ToList();
-            List<Entry> wanted = current.Where(IsFavourite).Concat(current.Where(e => !IsFavourite(e))).ToList();
+            List<Entry> wanted = Wanted();
             for (int i = 0; i < wanted.Count; i++)
             {
                 wanted[i].Button.transform.SetSiblingIndex(slots[i]);
@@ -247,11 +268,14 @@ namespace JustBeBetter.Pickers
 
         private readonly struct Entry
         {
-            internal Entry(MPButton button, string? key, string text)
+            internal Entry(MPButton button, string? key, string text, string name, int tierRank, int count)
             {
                 Button = button;
                 Key = key;
                 Text = text;
+                Name = name;
+                TierRank = tierRank;
+                Count = count;
             }
 
             internal MPButton Button { get; }
@@ -259,6 +283,12 @@ namespace JustBeBetter.Pickers
             internal string? Key { get; }
 
             internal string Text { get; }
+
+            internal string Name { get; }
+
+            internal int TierRank { get; }
+
+            internal int Count { get; }
         }
     }
 }

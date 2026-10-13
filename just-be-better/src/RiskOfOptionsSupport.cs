@@ -1,6 +1,9 @@
+using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
@@ -14,9 +17,10 @@ namespace JustBeBetter
         internal const string PluginGuid = "com.rune580.riskofoptions";
 
         private const string IconResource = "JustBeBetter.icon.png";
+        private const BindingFlags AnyInstance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        internal static void Register(Settings settings)
+        internal static void Register(Settings settings, ManualLogSource log)
         {
             ModSettingsManager.SetModDescription(
                 "Small fixes and additions for item pickers, the lobby, saving runs, the mouse cursor, loading "
@@ -54,6 +58,8 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Pickers.WindowBlur));
             Add(new IntSliderOption(settings.Pickers.WindowOpacity, Percent()));
             Add(new CheckBoxOption(settings.Pickers.CloseOnMovement));
+            AddLabelled(new ChoiceOption(settings.Pickers.CommandSorting), Pickers.PickerSettings.OrderLabels, log);
+            AddLabelled(new ChoiceOption(settings.Pickers.ScrapperSorting), Pickers.PickerSettings.OrderLabels, log);
 
             Enabled(settings.ItemInfo.Enabled);
             Add(new CheckBoxOption(settings.ItemInfo.FullDescriptions));
@@ -96,6 +102,34 @@ namespace JustBeBetter
         private static void Add(BaseOption option)
         {
             ModSettingsManager.AddOption(option, JustBeBetterPlugin.PluginGuid, JustBeBetterPlugin.PluginName);
+        }
+
+        // Risk Of Options shows a choice by its enum name, from tokens it registers in AddOption and reads
+        // before the game's own text, both internal so they're reached by reflection
+        private static void AddLabelled(ChoiceOption option, string[] labels, ManualLogSource log)
+        {
+            Add(option);
+            try
+            {
+                MethodInfo? getTokens = typeof(ChoiceOption).GetMethod("GetNameTokens", AnyInstance);
+                MethodInfo? setText = typeof(ModSettingsManager).Assembly.GetType("RiskOfOptions.Lib.LanguageApi")
+                    ?.GetMethod("Add", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(string) }, null);
+                if (getTokens?.Invoke(option, null) is not string[] tokens || setText == null)
+                {
+                    log.LogWarning($"Risk Of Options has changed, {option.Name}'s choices show by their config names");
+                    return;
+                }
+
+                for (int i = 0; i < tokens.Length && i < labels.Length; i++)
+                {
+                    setText.Invoke(null, new object[] { tokens[i], labels[i] });
+                }
+            }
+            // Anything, as a throw here would stop every part from starting over a label
+            catch (Exception e)
+            {
+                log.LogWarning($"Couldn't label {option.Name}'s choices in Risk Of Options, they show by their config names: {e}");
+            }
         }
 
         // Rendered from thunderstore/icon.svg

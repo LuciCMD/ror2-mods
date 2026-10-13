@@ -27,6 +27,11 @@ namespace JustBeBetter.Pickers
             return Tags.Replace(text, string.Empty).ToLowerInvariant();
         }
 
+        internal static string NameOf(PickupDef def)
+        {
+            return Tags.Replace(Get(def.nameToken), string.Empty).Trim();
+        }
+
         // Every word of the query, anywhere in the text
         internal static bool Matches(string text, string[] words)
         {

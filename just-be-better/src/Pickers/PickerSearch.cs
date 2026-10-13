@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Shared;
@@ -16,6 +18,8 @@ namespace JustBeBetter.Pickers
     internal sealed class PickerSearch : IFeature
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
+
+        private static readonly HashSet<string> Logged = new HashSet<string>();
 
         private readonly PickerSettings settings;
         private readonly ItemInfoSettings info;
@@ -144,16 +148,67 @@ namespace JustBeBetter.Pickers
 
             ReadOnlyCollection<MPButton> elements = allocator.elements;
             bool automatic = automaticNavigationField?.GetValue(panel) is bool b && b;
-            PickerFilter filter = PickerFilter.For(panel, favourites, automatic);
+            ConfigEntry<PickerOrder>? sorting = SortingFor(panel);
+            PickerFilter filter = PickerFilter.For(panel, favourites, automatic, sorting);
             filter.Clear();
+            CharacterMaster? master = PickerDetails.MasterOf(panel.GetComponentInParent<HUD>());
+            Inventory? inventory = master != null ? master.inventory : null;
             int count = Math.Min(elements.Count, options.Length);
             for (int i = 0; i < count; i++)
             {
                 PickupDef def = PickupCatalog.GetPickupDef(options[i].pickup.pickupIndex);
-                filter.Add(elements[i], def?.internalName, def != null ? PickerText.Of(def) : string.Empty);
+                filter.Add(
+                    elements[i],
+                    def?.internalName,
+                    def != null ? PickerText.Of(def) : string.Empty,
+                    def != null ? PickerText.NameOf(def) : string.Empty,
+                    TierRankOf(def),
+                    PickerDetails.HeldCount(def, inventory));
             }
 
             filter.Apply();
+            LogSorting(panel.name, sorting, count, inventory != null);
+        }
+
+        // By the panel, as the drone scrapper's DroneScrapperPickerPanel isn't the Scrapper
+        private ConfigEntry<PickerOrder>? SortingFor(PickupPickerPanel panel)
+        {
+            string name = panel.gameObject.name;
+            if (name.StartsWith("CommandPickerPanel", StringComparison.Ordinal))
+            {
+                return settings.CommandSorting;
+            }
+
+            return name.StartsWith("ScrapperPickerPanel", StringComparison.Ordinal) ? settings.ScrapperSorting : null;
+        }
+
+        private static int TierRankOf(PickupDef? def)
+        {
+            ItemDef? item = def != null && def.itemIndex != ItemIndex.None ? ItemCatalog.GetItemDef(def.itemIndex) : null;
+            return item ? PickerSort.TierRank(item!.tier) : PickerSort.NotAnItem;
+        }
+
+        // Once per picker and sort, so a picker left unsorted or sorted without counts says why
+        private void LogSorting(string name, ConfigEntry<PickerOrder>? sorting, int count, bool counted)
+        {
+            string order = sorting != null ? sorting.Value.ToString() : "unsorted";
+            if (!Logged.Add($"{name} {order}"))
+            {
+                return;
+            }
+
+            if (sorting == null)
+            {
+                log.LogInfo($"{name}: {count} items, not the Command menu or Scrapper so only favourites move");
+            }
+            else if (!counted && sorting.Value != PickerOrder.GamesOrder)
+            {
+                log.LogWarning($"{name}: {count} items sorted {order}, but no inventory was found so every count is 0");
+            }
+            else
+            {
+                log.LogInfo($"{name}: {count} items sorted {order}");
+            }
         }
 
         private void AttachDetails(PickupPickerPanel panel)

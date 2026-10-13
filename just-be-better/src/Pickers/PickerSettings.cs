@@ -8,6 +8,9 @@ namespace JustBeBetter.Pickers
         internal const string Section = "Item Pickers";
         internal const int MaxItemsPerRow = 30;
 
+        // In PickerOrder's order
+        internal static readonly string[] OrderLabels = { "Game's Order", "Most Held First", "A to Z", "By Tier" };
+
         internal PickerSettings(ConfigFile config)
         {
             if (config == null)
@@ -19,7 +22,7 @@ namespace JustBeBetter.Pickers
                 config,
                 Section,
                 "Adds a search box, favourite stars, item counts and tooltips to every item picker, such as the "
-                + "Command menu and the Scrapper, and lets you size, see through and close its window.");
+                + "Command menu and the Scrapper, sorts those two, and lets you size, see through and close its window.");
 
             ItemCounts = config.Bind(
                 Section,
@@ -86,6 +89,20 @@ namespace JustBeBetter.Pickers
                 true,
                 "Closes the picker when you move, jump or sprint, using your own key bindings. Not while typing "
                 + "in the search box, and not with a controller, where the stick moves around the picker.");
+
+            CommandSorting = config.Bind(
+                Section,
+                "Command Sorting",
+                PickerOrder.GamesOrder,
+                "How the Command menu orders its items, after your favourites. Most Held First goes by the count "
+                + "on each button, and By Tier runs from common to rare, then the void tiers.");
+
+            ScrapperSorting = config.Bind(
+                Section,
+                "Scrapper Sorting",
+                PickerOrder.ByTier,
+                "How the Scrapper orders your items, after your favourites. The game's order is the order you got "
+                + "them in, as your inventory bar shows them.");
         }
 
         internal ConfigEntry<bool> Enabled { get; }
@@ -107,5 +124,9 @@ namespace JustBeBetter.Pickers
         internal ConfigEntry<int> WindowOpacity { get; }
 
         internal ConfigEntry<bool> CloseOnMovement { get; }
+
+        internal ConfigEntry<PickerOrder> CommandSorting { get; }
+
+        internal ConfigEntry<PickerOrder> ScrapperSorting { get; }
     }
 }

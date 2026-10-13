@@ -166,6 +166,19 @@ namespace JustBeBetter.Pickers
             return options != null && index < options.Length && options[index].available;
         }
 
+        // The count on the badge, whether or not it shows
+        internal static int HeldCount(PickupDef? def, Inventory? inventory)
+        {
+            ItemIndex item = def != null ? def.itemIndex : ItemIndex.None;
+            if (item == ItemIndex.None || inventory == null)
+            {
+                return 0;
+            }
+
+            ItemIndex voidItem = CorruptorOf(item, inventory);
+            return inventory.GetItemCountEffective(voidItem != ItemIndex.None ? voidItem : item);
+        }
+
         private static ItemIndex CorruptorOf(ItemIndex item, Inventory inventory)
         {
             ItemIndex voidItem = ContagiousItemManager.GetTransformedItemIndex(item);
@@ -248,7 +261,7 @@ namespace JustBeBetter.Pickers
         }
 
         // The picker opens on the HUD of the local player using it, so that's whose items count
-        private static CharacterMaster? MasterOf(HUD? hud)
+        internal static CharacterMaster? MasterOf(HUD? hud)
         {
             LocalUser? user = hud != null ? hud.localUserViewer : null;
             user ??= LocalUserManager.GetFirstLocalUser();

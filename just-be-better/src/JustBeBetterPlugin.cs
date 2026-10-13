@@ -33,7 +33,7 @@ namespace JustBeBetter
             var settings = new Settings(Config);
             if (Chainloader.PluginInfos.ContainsKey(RiskOfOptionsSupport.PluginGuid))
             {
-                RiskOfOptionsSupport.Register(settings);
+                RiskOfOptionsSupport.Register(settings, Logger);
                 Logger.LogInfo("Settings added to Risk Of Options");
             }
 

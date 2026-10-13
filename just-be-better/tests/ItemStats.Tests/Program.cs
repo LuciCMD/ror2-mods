@@ -73,6 +73,8 @@ internal static partial class Program
         RunSkillEdge();
         RunWindowFit();
         RunHoverEdge();
+        RunPickerSort();
+        RunPickerSortEdge();
     }
 
     private static void Test(string name, Action body)
