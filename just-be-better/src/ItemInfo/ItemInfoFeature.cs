@@ -3,8 +3,8 @@ using BepInEx.Logging;
 
 namespace JustBeBetter.ItemInfo
 {
-    // The Item Info section's two halves, the pickup card and inventory hover, each starting on its own so one
-    // failing leaves the other running
+    // The Item Info section's parts, the pickup card, inventory hover and ping cards, each starting on its own
+    // so one failing leaves the others running
     internal sealed class ItemInfoFeature : IFeature
     {
         private readonly IFeature[] parts;
@@ -13,7 +13,8 @@ namespace JustBeBetter.ItemInfo
         internal ItemInfoFeature(ItemInfoSettings settings, ManualLogSource log)
         {
             this.log = log ?? throw new ArgumentNullException(nameof(log));
-            parts = new IFeature[] { new PickupDetails(settings, log), new HoverDetails(settings, log) };
+            var pings = new PingCards();
+            parts = new IFeature[] { new PickupDetails(settings, log, pings), new HoverDetails(settings, log), new PingDetails(settings, log, pings) };
         }
 
         public void Enable()

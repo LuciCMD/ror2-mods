@@ -12,8 +12,9 @@ using NotificationInfo = RoR2.CharacterMasterNotificationQueue.NotificationInfo;
 namespace JustBeBetter.ItemInfo
 {
     // The card that appears after a pickup gets the full description and what the pickup changed
-    // Set once the game has built the card, so its own special texts still win, and transformation cards such
-    // as an item turning into its void version keep the game's text
+    // Set once the game has built the card, so its own special texts still win
+    // A card for an item turning into another, such as its void version, gets the new item's change, an
+    // equipment one keeps the game's text
     internal sealed class PickupDetails : IFeature
     {
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -21,6 +22,7 @@ namespace JustBeBetter.ItemInfo
 
         private readonly ItemInfoSettings settings;
         private readonly ManualLogSource log;
+        private readonly PingCards pings;
         private readonly PickupChanges<NotificationInfo> changes = new PickupChanges<NotificationInfo>();
 
         // Each local player's item counts as last seen, to tell what a change added
@@ -37,10 +39,11 @@ namespace JustBeBetter.ItemInfo
         private NotificationInfo? shownInfo;
         private string? shownGameText;
 
-        internal PickupDetails(ItemInfoSettings settings, ManualLogSource log)
+        internal PickupDetails(ItemInfoSettings settings, ManualLogSource log, PingCards pings)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
+            this.pings = pings ?? throw new ArgumentNullException(nameof(pings));
         }
 
         public void Enable()
@@ -63,13 +66,15 @@ namespace JustBeBetter.ItemInfo
             queueMasterField = typeof(CharacterMasterNotificationQueue).GetField("master", Private);
             queueListField = typeof(CharacterMasterNotificationQueue).GetField("notifications", Private);
             timedInfoField = typeof(CharacterMasterNotificationQueue).GetNestedType("TimedNotificationInfo", Any)?.GetField("notification", Any);
-            if (queueMasterField == null || queueListField == null || timedInfoField == null)
+
+            // Hooked either way, as it also marks a ping's card
+            On.RoR2.CharacterMasterNotificationQueue.PushNotification += OnPushNotification;
+            if (!PairsChanges)
             {
                 log.LogWarning("The pickup queue's internals have changed, cards read the change as of when they show");
                 return;
             }
 
-            On.RoR2.CharacterMasterNotificationQueue.PushNotification += OnPushNotification;
             Inventory.onInventoryChangedGlobal += OnInventoryChanged;
             changes.Matched += OnMatched;
         }
@@ -88,8 +93,21 @@ namespace JustBeBetter.ItemInfo
             NotificationInfo info,
             float duration)
         {
+            // Marked first, as a card pushed to an empty queue is built inside orig
+            // A ping's card isn't a pickup, so it mustn't take a pickup's count change either
+            bool ping = pings.Pushing;
+            if (ping)
+            {
+                pings.Add(info);
+            }
+
             int before = Queued(self)?.Count ?? -1;
             orig(self, info, duration);
+            if (ping)
+            {
+                return;
+            }
+
             try
             {
                 NoteQueued(self, info, before);
@@ -100,9 +118,11 @@ namespace JustBeBetter.ItemInfo
             }
         }
 
+        private bool PairsChanges => queueMasterField != null && queueListField != null && timedInfoField != null;
+
         private void NoteQueued(CharacterMasterNotificationQueue queue, NotificationInfo info, int before)
         {
-            if (info?.data is not ItemDef item || info.transformation != null || !IsLocal(queueMasterField!.GetValue(queue) as CharacterMaster))
+            if (!PairsChanges || info?.data is not ItemDef item || !IsLocal(queueMasterField!.GetValue(queue) as CharacterMaster))
             {
                 return;
             }
@@ -111,6 +131,11 @@ namespace JustBeBetter.ItemInfo
             IList? list = Queued(queue);
             bool merged = list != null && list.Count == before && before > 0;
             NotificationInfo card = merged ? timedInfoField!.GetValue(list![before - 1]) as NotificationInfo ?? info : info;
+            if (merged)
+            {
+                pings.PickedUp(card);
+            }
+
             changes.CardQueued(card, (int)item.itemIndex, Time.unscaledTime, merged);
         }
 
@@ -211,8 +236,9 @@ namespace JustBeBetter.ItemInfo
         private void Describe(NotificationUIController controller, NotificationInfo info)
         {
             // With neither full text nor stats there's nothing to add to the game's one-liner
-            if (!settings.PickupDetails.Value || !(settings.FullText || settings.Stats) || info == null || info.transformation != null
-                || !string.IsNullOrEmpty(info.overrides?.descriptionText))
+            // A ping's card follows Ping Info, not Pickup Details
+            if (!(settings.PickupDetails.Value || pings.Contains(info)) || !(settings.FullText || settings.Stats) || info == null
+                || (info.transformation != null && info.data is not ItemDef) || !string.IsNullOrEmpty(info.overrides?.descriptionText))
             {
                 return;
             }
@@ -241,10 +267,8 @@ namespace JustBeBetter.ItemInfo
                 ItemStats.Utils.CapChance = settings.CapChance.Value;
             }
 
-            (int, int)? change = changes.TryGet(info, out int before, out int after) ? (before, after) : null;
             string arrow = StatArrow.Text(log, card.titleTMP != null ? card.titleTMP.font : null);
-            string? text = ItemStatText.DescribePickup(
-                info.data, master ? master : null, gameText, settings.FullText, settings.Stats, arrow, change);
+            string? text = TextFor(info, master ? master : null, gameText, arrow);
 
             // The game sets resolved text through the token too, a string that isn't a token shows as it is
             if (text != null)
@@ -253,11 +277,24 @@ namespace JustBeBetter.ItemInfo
             }
         }
 
+        // A ping's card says what picking the thing up would give, a pickup's what it changed
+        private string? TextFor(NotificationInfo info, CharacterMaster? master, string gameText, string arrow)
+        {
+            if (pings.Contains(info))
+            {
+                return ItemStatText.DescribePing(info.data, master, gameText, settings.FullText, settings.Stats, arrow);
+            }
+
+            (int, int)? change = changes.TryGet(info, out int before, out int after) ? (before, after) : null;
+            return ItemStatText.DescribePickup(info.data, master, gameText, settings.FullText, settings.Stats, arrow, change);
+        }
+
         private void OnMatched(NotificationInfo info)
         {
             try
             {
-                if (info != shownInfo || !shownController || shownGameText == null)
+                // By reference, as the game counts any two cards of one item equal
+                if (!ReferenceEquals(info, shownInfo) || !shownController || shownGameText == null)
                 {
                     return;
                 }

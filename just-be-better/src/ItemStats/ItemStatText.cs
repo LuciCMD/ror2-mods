@@ -104,8 +104,8 @@ namespace JustBeBetter.ItemStats
         // For the card shown after a pickup, so the lines are what it just changed, before → after
         // Change is the count change matched to this card, else it's taken as the latest one stack
         // The game's own card text is kept and only its one-liner swapped for the full description, so
-        // anything it adds around it stays, such as a Hex item's cleanse line
-        // An item about to be corrupted gets only its text
+        // anything it adds around it stays, such as a Hex item's cleanse line or a void item's corrupts line
+        // An item about to be corrupted gets only its text, the card for its void item has the stats
         internal static string? DescribePickup(
             object data, CharacterMaster? master, string gameText, bool fullDescription, bool stats, string arrow, (int Before, int After)? change)
         {
@@ -141,6 +141,16 @@ namespace JustBeBetter.ItemStats
                 default:
                     return null;
             }
+        }
+
+        // A pinged thing's card reads as the pickers' tooltips do, what picking it would give the player it shows
+        // to, so a corrupted item shows the void item it adds to and a void item the stacks it takes in
+        // Swapped in for the game's one-liner, so a Hex keeps its Hallowed Shrine hint
+        internal static string? DescribePing(object data, CharacterMaster? master, string gameText, bool fullDescription, bool stats, string arrow)
+        {
+            return data is ItemDef item
+                ? SwapIn(gameText, item.pickupToken, DescribeItem(item, master, fullDescription, stats, true, arrow))
+                : DescribePickup(data, master, gameText, fullDescription, stats, arrow, null);
         }
 
         private static string SwapIn(string gameText, string shortToken, string fullToken, bool fullDescription)

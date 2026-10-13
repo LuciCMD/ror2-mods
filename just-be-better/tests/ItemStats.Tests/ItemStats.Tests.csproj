@@ -21,6 +21,8 @@
     <Compile Include="$(Src)\..\ItemInfo\PickupChanges.cs" Link="Src\PickupChanges.cs" />
     <Compile Include="$(Src)\..\Pickers\WindowFit.cs" Link="Src\WindowFit.cs" />
     <Compile Include="$(Src)\..\Pickers\PickerSort.cs" Link="Src\PickerSort.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\PingQueue.cs" Link="Src\PingQueue.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\PingCards.cs" Link="Src\PingCards.cs" />
     <Compile Include="$(Src)\..\SkillInfo\SkillText.cs" Link="Src\SkillText.cs" />
     <Compile Include="$(Src)\..\SkillInfo\ProcCoefficientData.cs" Link="Src\ProcCoefficientData.cs" />
     <Compile Include="$(Src)\..\Shared\CooldownText.cs" Link="Src\CooldownText.cs" />
@@ -31,6 +33,10 @@
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>GameManaged</_Parameter1>
       <_Parameter2>$(GameManaged)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>SourceRoot</_Parameter1>
+      <_Parameter2>$(Src)\..</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 

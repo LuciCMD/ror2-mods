@@ -75,6 +75,10 @@ internal static partial class Program
         RunHoverEdge();
         RunPickerSort();
         RunPickerSortEdge();
+        RunPing();
+        RunPingEdge();
+        RunTransformEdge();
+        RunConfigNames();
     }
 
     private static void Test(string name, Action body)

@@ -19,8 +19,8 @@ namespace JustBeBetter.ItemInfo
                 config,
                 Section,
                 "Shows items' full descriptions and worked-out stats on the pickup card, in the item pickers' "
-                + "tooltips and when you hover an inventory, such as your HUD's or the scoreboard's. Off leaves them "
-                + "to the game.");
+                + "tooltips, when you hover an inventory, such as your HUD's or the scoreboard's, and when you ping "
+                + "an item. Off leaves them to the game.");
 
             FullDescriptions = config.Bind(
                 Section,
@@ -49,6 +49,26 @@ namespace JustBeBetter.ItemInfo
                 "Shows the full description and what the pickup changed, such as your block chance going from "
                 + "47.37% to 51.22%, on the card that appears when you pick something up.");
 
+            PingInfo = config.Bind(
+                Section,
+                "Ping Info",
+                true,
+                "Shows the pickup card for an item, shop item or drone when you ping it, with what picking it up "
+                + "would give you.");
+
+            OtherPlayersPings = config.Bind(
+                Section,
+                "Pings From Other Players",
+                false,
+                "Also shows the card when another player pings something.");
+
+            ShowHiddenItems = config.Bind(
+                Section,
+                "Show Hidden Shop Items",
+                false,
+                "Pinging a multishop's \"?\" item shows what it really is. This reveals what the game hides on "
+                + "purpose.");
+
             enabledAtLaunch = Enabled.Value;
         }
 
@@ -61,6 +81,12 @@ namespace JustBeBetter.ItemInfo
         internal ConfigEntry<bool> CapChance { get; }
 
         internal ConfigEntry<bool> PickupDetails { get; }
+
+        internal ConfigEntry<bool> PingInfo { get; }
+
+        internal ConfigEntry<bool> OtherPlayersPings { get; }
+
+        internal ConfigEntry<bool> ShowHiddenItems { get; }
 
         // Enabled counts as it was at launch like every section's, and off means the game's text in the pickers too
         internal bool FullText => enabledAtLaunch && FullDescriptions.Value;
