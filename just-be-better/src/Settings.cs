@@ -1,5 +1,7 @@
 using System;
 using BepInEx.Configuration;
+using JustBeBetter.BuffInfo;
+using JustBeBetter.Cooldowns;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Mouse;
@@ -28,6 +30,8 @@ namespace JustBeBetter
             Pickers = new PickerSettings(config);
             ItemInfo = new ItemInfoSettings(config);
             SkillInfo = new SkillInfoSettings(config);
+            Cooldowns = new CooldownSettings(config);
+            Buffs = new BuffInfoSettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -58,6 +62,10 @@ namespace JustBeBetter
         internal ItemInfoSettings ItemInfo { get; }
 
         internal SkillInfoSettings SkillInfo { get; }
+
+        internal CooldownSettings Cooldowns { get; }
+
+        internal BuffInfoSettings Buffs { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 

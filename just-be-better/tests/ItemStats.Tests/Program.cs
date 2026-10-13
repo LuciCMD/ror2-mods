@@ -79,6 +79,10 @@ internal static partial class Program
         RunPingEdge();
         RunTransformEdge();
         RunConfigNames();
+        RunCooldowns();
+        RunCooldownEdge();
+        RunBuffs();
+        RunBuffEdge();
     }
 
     private static void Test(string name, Action body)

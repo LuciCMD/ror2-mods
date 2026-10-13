@@ -75,6 +75,16 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.SkillInfo.ProcCoefficient));
             Add(new CheckBoxOption(settings.SkillInfo.ExtraNotes));
             Add(new CheckBoxOption(settings.SkillInfo.ItemProcs));
+
+            Enabled(settings.Cooldowns.Enabled);
+            Add(new CheckBoxOption(settings.Cooldowns.Skills));
+            Add(new CheckBoxOption(settings.Cooldowns.Equipment));
+
+            Enabled(settings.Buffs.Enabled);
+            Add(new CheckBoxOption(settings.Buffs.Timers));
+            Add(new CheckBoxOption(settings.Buffs.OneDecimal));
+            Add(new CheckBoxOption(settings.Buffs.Descriptions));
+
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 

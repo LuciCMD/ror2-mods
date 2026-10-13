@@ -23,6 +23,9 @@
     <Compile Include="$(Src)\..\Pickers\PickerSort.cs" Link="Src\PickerSort.cs" />
     <Compile Include="$(Src)\..\ItemInfo\PingQueue.cs" Link="Src\PingQueue.cs" />
     <Compile Include="$(Src)\..\ItemInfo\PingCards.cs" Link="Src\PingCards.cs" />
+    <Compile Include="$(Src)\..\Cooldowns\CooldownRules.cs" Link="Src\CooldownRules.cs" />
+    <Compile Include="$(Src)\..\BuffInfo\BuffText.cs" Link="Src\BuffText.cs" />
+    <Compile Include="$(Src)\..\BuffInfo\BuffDefinitions.cs" Link="Src\BuffDefinitions.cs" />
     <Compile Include="$(Src)\..\SkillInfo\SkillText.cs" Link="Src\SkillText.cs" />
     <Compile Include="$(Src)\..\SkillInfo\ProcCoefficientData.cs" Link="Src\ProcCoefficientData.cs" />
     <Compile Include="$(Src)\..\Shared\CooldownText.cs" Link="Src\CooldownText.cs" />
