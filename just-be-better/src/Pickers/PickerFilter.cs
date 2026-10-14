@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Configuration;
+using JustBeBetter.InventorySort;
 using JustBeBetter.Shared;
+using RoR2;
 using RoR2.UI;
 using TMPro;
 using UnityEngine;
@@ -28,15 +30,22 @@ namespace JustBeBetter.Pickers
         private PickupPickerPanel? panel;
         private Favourites? favourites;
         private ConfigEntry<PickerOrder>? sorting;
+        private Func<SortRules?>? inventoryRules;
         private List<Entry>? arranged;
         private PickerOrder arrangedFor;
+        private SortRules? arrangedRules;
         private RectTransform? bar;
         private TMP_InputField? searchField;
         private bool automaticNavigation;
         private string[] words = Array.Empty<string>();
 
-        // No sorting setting keeps the game's order after the favourites
-        internal static PickerFilter For(PickupPickerPanel panel, Favourites favourites, bool automaticNavigation, ConfigEntry<PickerOrder>? sorting)
+        // No sorting setting keeps the game's order after the favourites, inventory rules make By Tier follow Inventory Sort
+        internal static PickerFilter For(
+            PickupPickerPanel panel,
+            Favourites favourites,
+            bool automaticNavigation,
+            ConfigEntry<PickerOrder>? sorting,
+            Func<SortRules?>? inventoryRules = null)
         {
             if (!panel.TryGetComponent(out PickerFilter filter))
             {
@@ -48,6 +57,7 @@ namespace JustBeBetter.Pickers
             }
 
             filter.sorting = sorting;
+            filter.inventoryRules = inventoryRules;
             return filter;
         }
 
@@ -60,9 +70,9 @@ namespace JustBeBetter.Pickers
         }
 
         // In the game's order, with the count as it is now so buttons don't move under the cursor
-        internal void Add(MPButton button, string? key, string text, string name, int tierRank, int count)
+        internal void Add(MPButton button, string? key, string text, string name, int tierRank, int count, ItemTier? tier, bool scrap)
         {
-            entries.Add(new Entry(button, key, text, name, tierRank, count));
+            entries.Add(new Entry(button, key, text, name, tierRank, count, tier, scrap));
             arranged = null;
             FavouriteMark.Attach(button.gameObject, () => favourites!.Contains(key), () => Toggle(key), true);
         }
@@ -138,19 +148,21 @@ namespace JustBeBetter.Pickers
                 return Arranged(Sorted(), PickerOrder.GamesOrder);
             }
 
-            if (arranged == null || arrangedFor != sorting.Value)
+            SortRules? rules = inventoryRules?.Invoke();
+            if (arranged == null || arrangedFor != sorting.Value || !Nullable.Equals(arrangedRules, rules))
             {
                 arrangedFor = sorting.Value;
-                arranged = Arranged(entries.Where(e => e.Button).ToList(), arrangedFor);
+                arrangedRules = rules;
+                arranged = Arranged(entries.Where(e => e.Button).ToList(), arrangedFor, rules);
             }
 
             return arranged.Where(e => e.Button).ToList();
         }
 
-        private List<Entry> Arranged(List<Entry> live, PickerOrder order)
+        private List<Entry> Arranged(List<Entry> live, PickerOrder order, SortRules? rules = null)
         {
-            List<SortKey> keys = live.Select(e => new SortKey(e.Name, e.TierRank, e.Count, IsFavourite(e))).ToList();
-            return PickerSort.Arrange(keys, order).Select(i => live[i]).ToList();
+            List<SortKey> keys = live.Select(e => new SortKey(e.Name, e.TierRank, e.Count, IsFavourite(e), e.Tier, e.Scrap)).ToList();
+            return PickerSort.Arrange(keys, order, rules).Select(i => live[i]).ToList();
         }
 
         private List<Entry> Sorted()
@@ -268,7 +280,7 @@ namespace JustBeBetter.Pickers
 
         private readonly struct Entry
         {
-            internal Entry(MPButton button, string? key, string text, string name, int tierRank, int count)
+            internal Entry(MPButton button, string? key, string text, string name, int tierRank, int count, ItemTier? tier, bool scrap)
             {
                 Button = button;
                 Key = key;
@@ -276,6 +288,8 @@ namespace JustBeBetter.Pickers
                 Name = name;
                 TierRank = tierRank;
                 Count = count;
+                Tier = tier;
+                Scrap = scrap;
             }
 
             internal MPButton Button { get; }
@@ -289,6 +303,10 @@ namespace JustBeBetter.Pickers
             internal int TierRank { get; }
 
             internal int Count { get; }
+
+            internal ItemTier? Tier { get; }
+
+            internal bool Scrap { get; }
         }
     }
 }

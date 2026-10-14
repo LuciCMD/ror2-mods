@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using JustBeBetter.BuffInfo;
 using JustBeBetter.Cooldowns;
 using JustBeBetter.Hidden;
+using JustBeBetter.InventorySort;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Mouse;
@@ -35,6 +36,7 @@ namespace JustBeBetter
             ItemInfo = new ItemInfoSettings(config);
             Notifications = new NotificationSettings(config);
             Hidden = new HiddenSettings(config);
+            InventorySort = new InventorySortSettings(config);
             SkillInfo = new SkillInfoSettings(config);
             Cooldowns = new CooldownSettings(config);
             Buffs = new BuffInfoSettings(config);
@@ -72,6 +74,8 @@ namespace JustBeBetter
         internal NotificationSettings Notifications { get; }
 
         internal HiddenSettings Hidden { get; }
+
+        internal InventorySortSettings InventorySort { get; }
 
         internal SkillInfoSettings SkillInfo { get; }
 

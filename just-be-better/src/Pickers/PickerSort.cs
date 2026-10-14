@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JustBeBetter.InventorySort;
 using RoR2;
 
 namespace JustBeBetter.Pickers
@@ -44,7 +45,8 @@ namespace JustBeBetter.Pickers
         }
 
         // Keys in the game's order, the result is their indices in the wanted order
-        internal static List<int> Arrange(IReadOnlyList<SortKey> keys, PickerOrder order)
+        // With inventory rules By Tier sorts as Inventory Sort does, so the Scrapper matches the inventory bar
+        internal static List<int> Arrange(IReadOnlyList<SortKey> keys, PickerOrder order, SortRules? inventory = null)
         {
             if (keys == null)
             {
@@ -60,6 +62,13 @@ namespace JustBeBetter.Pickers
                 case PickerOrder.AToZ:
                     sorted = sorted.ThenBy(i => keys[i].Name ?? string.Empty, StringComparer.InvariantCultureIgnoreCase);
                     break;
+                case PickerOrder.ByTier when inventory is SortRules rules:
+                    sorted = sorted
+                        .ThenBy(i => keys[i].Tier.HasValue ? 0 : 1)
+                        .ThenBy(i => InventoryOrder.ScrapRank(keys[i].Scrap, rules.Scrap))
+                        .ThenBy(i => keys[i].Tier is ItemTier tier ? InventoryOrder.TierRank(tier, rules) : 0)
+                        .ThenBy(i => InventoryOrder.StackRank(keys[i].Count, rules.Stacks));
+                    break;
                 case PickerOrder.ByTier:
                     sorted = sorted.ThenBy(i => keys[i].TierRank).ThenByDescending(i => keys[i].Count);
                     break;
@@ -73,13 +82,20 @@ namespace JustBeBetter.Pickers
 
     internal readonly struct SortKey
     {
-        internal SortKey(string? name, int tierRank, int count, bool favourite)
+        // Tier is null for anything that isn't an item
+        internal SortKey(string? name, int tierRank, int count, bool favourite, ItemTier? tier = null, bool scrap = false)
         {
             Name = name;
             TierRank = tierRank;
             Count = count;
             Favourite = favourite;
+            Tier = tier;
+            Scrap = scrap;
         }
+
+        internal ItemTier? Tier { get; }
+
+        internal bool Scrap { get; }
 
         internal string? Name { get; }
 

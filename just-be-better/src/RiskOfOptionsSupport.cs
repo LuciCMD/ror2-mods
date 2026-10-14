@@ -87,6 +87,13 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Hidden.UnhideItems));
             Add(new CheckBoxOption(settings.Hidden.UnhideBuffs));
 
+            Enabled(settings.InventorySort.Enabled);
+            AddLabelled(new ChoiceOption(settings.InventorySort.ScrapPosition), InventorySort.InventorySortSettings.ScrapLabels, log);
+            AddLabelled(new ChoiceOption(settings.InventorySort.TierOrder), InventorySort.InventorySortSettings.TierLabels, log);
+            Add(new CheckBoxOption(settings.InventorySort.MixVoids));
+            AddLabelled(new ChoiceOption(settings.InventorySort.StackSize), InventorySort.InventorySortSettings.StackLabels, log);
+            Add(new CheckBoxOption(settings.InventorySort.SortRunReports));
+
             Enabled(settings.SkillInfo.Enabled);
             Add(new CheckBoxOption(settings.SkillInfo.Cooldown));
             Add(new CheckBoxOption(settings.SkillInfo.ProcCoefficient));

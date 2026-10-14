@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using JustBeBetter.InventorySort;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Shared;
 using RoR2;
@@ -23,6 +24,7 @@ namespace JustBeBetter.Pickers
 
         private readonly PickerSettings settings;
         private readonly ItemInfoSettings info;
+        private readonly Func<SortRules?> inventoryRules;
         private readonly ManualLogSource log;
         private readonly Favourites favourites;
         private FieldInfo? buttonsField;
@@ -30,10 +32,11 @@ namespace JustBeBetter.Pickers
         private FieldInfo? automaticNavigationField;
         private FieldInfo? inspectField;
 
-        internal PickerSearch(PickerSettings settings, ItemInfoSettings info, ManualLogSource log, Favourites favourites)
+        internal PickerSearch(PickerSettings settings, ItemInfoSettings info, Func<SortRules?> inventoryRules, ManualLogSource log, Favourites favourites)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.info = info ?? throw new ArgumentNullException(nameof(info));
+            this.inventoryRules = inventoryRules ?? throw new ArgumentNullException(nameof(inventoryRules));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
             this.favourites = favourites ?? throw new ArgumentNullException(nameof(favourites));
         }
@@ -149,7 +152,8 @@ namespace JustBeBetter.Pickers
             ReadOnlyCollection<MPButton> elements = allocator.elements;
             bool automatic = automaticNavigationField?.GetValue(panel) is bool b && b;
             ConfigEntry<PickerOrder>? sorting = SortingFor(panel);
-            PickerFilter filter = PickerFilter.For(panel, favourites, automatic, sorting);
+            Func<SortRules?>? follow = sorting == settings.ScrapperSorting ? inventoryRules : null;
+            PickerFilter filter = PickerFilter.For(panel, favourites, automatic, sorting, follow);
             filter.Clear();
             CharacterMaster? master = PickerDetails.MasterOf(panel.GetComponentInParent<HUD>());
             Inventory? inventory = master != null ? master.inventory : null;
@@ -157,17 +161,20 @@ namespace JustBeBetter.Pickers
             for (int i = 0; i < count; i++)
             {
                 PickupDef def = PickupCatalog.GetPickupDef(options[i].pickup.pickupIndex);
+                ItemDef? item = ItemOf(def);
                 filter.Add(
                     elements[i],
                     def?.internalName,
                     def != null ? PickerText.Of(def) : string.Empty,
                     def != null ? PickerText.NameOf(def) : string.Empty,
-                    TierRankOf(def),
-                    PickerDetails.HeldCount(def, inventory));
+                    item ? PickerSort.TierRank(item!.tier) : PickerSort.NotAnItem,
+                    PickerDetails.HeldCount(def, inventory),
+                    item ? item!.tier : (ItemTier?)null,
+                    item && InventorySorter.IsScrap(item!));
             }
 
             filter.Apply();
-            LogSorting(panel.name, sorting, count, inventory != null);
+            LogSorting(panel.name, sorting, count, inventory != null, follow?.Invoke() != null);
         }
 
         // By the panel, as the drone scrapper's DroneScrapperPickerPanel isn't the Scrapper
@@ -182,16 +189,20 @@ namespace JustBeBetter.Pickers
             return name.StartsWith("ScrapperPickerPanel", StringComparison.Ordinal) ? settings.ScrapperSorting : null;
         }
 
-        private static int TierRankOf(PickupDef? def)
+        private static ItemDef? ItemOf(PickupDef? def)
         {
-            ItemDef? item = def != null && def.itemIndex != ItemIndex.None ? ItemCatalog.GetItemDef(def.itemIndex) : null;
-            return item ? PickerSort.TierRank(item!.tier) : PickerSort.NotAnItem;
+            return def != null && def.itemIndex != ItemIndex.None ? ItemCatalog.GetItemDef(def.itemIndex) : null;
         }
 
         // Once per picker and sort, so a picker left unsorted or sorted without counts says why
-        private void LogSorting(string name, ConfigEntry<PickerOrder>? sorting, int count, bool counted)
+        private void LogSorting(string name, ConfigEntry<PickerOrder>? sorting, int count, bool counted, bool followsInventory)
         {
             string order = sorting != null ? sorting.Value.ToString() : "unsorted";
+            if (followsInventory && sorting?.Value == PickerOrder.ByTier)
+            {
+                order += " following Inventory Sort";
+            }
+
             if (!Logged.Add($"{name} {order}"))
             {
                 return;

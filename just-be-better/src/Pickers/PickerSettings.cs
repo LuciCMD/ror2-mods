@@ -102,7 +102,8 @@ namespace JustBeBetter.Pickers
                 "Scrapper Sorting",
                 PickerOrder.ByTier,
                 "How the Scrapper orders your items, after your favourites. The game's order is the order you got "
-                + "them in, as your inventory bar shows them.");
+                + "them in. By Tier sorts them like Inventory Sort does your inventory bar, or common to rare when "
+                + "that part is off.");
         }
 
         internal ConfigEntry<bool> Enabled { get; }

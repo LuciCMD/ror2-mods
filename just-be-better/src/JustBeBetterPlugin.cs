@@ -7,6 +7,7 @@ using BepInEx.Logging;
 using JustBeBetter.BuffInfo;
 using JustBeBetter.Cooldowns;
 using JustBeBetter.Hidden;
+using JustBeBetter.InventorySort;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Lobby;
@@ -45,12 +46,19 @@ namespace JustBeBetter
 
             StartPart(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
             StartPart(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
-            StartPart(settings.Pickers.Enabled, PickerSettings.Section, log => new PickerSearch(settings.Pickers, settings.ItemInfo, log, new Favourites("Item Favourites", log)));
+            // Started further down, the Scrapper only follows it once it's hooked
+            InventorySorter? sorter = null;
+            Func<SortRules?> inventoryRules = () => sorter != null && sorter.Hooked ? settings.InventorySort.Rules : (SortRules?)null;
+            StartPart(
+                settings.Pickers.Enabled,
+                PickerSettings.Section,
+                log => new PickerSearch(settings.Pickers, settings.ItemInfo, inventoryRules, log, new Favourites("Item Favourites", log)));
             var pings = new PingCards();
             var skipped = new SkippedCards();
             StartPart(settings.ItemInfo.Enabled, ItemInfoSettings.Section, log => new ItemInfoFeature(settings.ItemInfo, pings, skipped, log));
             StartPart(settings.Notifications.Enabled, NotificationSettings.Section, log => new PickupCards(settings.Notifications, pings, skipped, log));
             StartPart(settings.Hidden.Enabled, HiddenSettings.Section, log => new Unhider(settings.Hidden, log));
+            StartPart(settings.InventorySort.Enabled, InventorySortSettings.Section, log => sorter = new InventorySorter(settings.InventorySort, log));
             StartPart(settings.SkillInfo.Enabled, SkillInfoSettings.Section, log => new SkillDetails(settings.SkillInfo, settings.ItemInfo, log));
             StartPart(settings.Cooldowns.Enabled, CooldownSettings.Section, log => new CooldownTimers(settings.Cooldowns, log));
             StartPart(settings.Buffs.Enabled, BuffInfoSettings.Section, log => new BuffDetails(settings.Buffs, log));
