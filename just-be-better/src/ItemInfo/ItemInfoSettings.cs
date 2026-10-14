@@ -19,8 +19,8 @@ namespace JustBeBetter.ItemInfo
                 config,
                 Section,
                 "Shows items' full descriptions and worked-out stats on the pickup card, in the item pickers' "
-                + "tooltips, when you hover an inventory, such as your HUD's or the scoreboard's, and when you ping "
-                + "an item. Off leaves them to the game.");
+                + "tooltips, when you hover or click an inventory's items, such as your HUD's or the scoreboard's, and "
+                + "when you ping an item. Off leaves them to the game.");
 
             FullDescriptions = config.Bind(
                 Section,

@@ -71,6 +71,22 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.ItemInfo.OtherPlayersPings));
             Add(new CheckBoxOption(settings.ItemInfo.ShowHiddenItems));
 
+            Enabled(settings.Notifications.Enabled);
+            Add(new CheckBoxOption(settings.Notifications.ShowPickupCards));
+            Add(new StepSliderOption(
+                settings.Notifications.CardDuration,
+                new StepSliderConfig
+                {
+                    min = Notifications.CardRules.MinSeconds,
+                    max = Notifications.CardRules.MaxSeconds,
+                    increment = 0.5f,
+                    FormatString = "{0:0.0} s",
+                }));
+
+            Enabled(settings.Hidden.Enabled);
+            Add(new CheckBoxOption(settings.Hidden.UnhideItems));
+            Add(new CheckBoxOption(settings.Hidden.UnhideBuffs));
+
             Enabled(settings.SkillInfo.Enabled);
             Add(new CheckBoxOption(settings.SkillInfo.Cooldown));
             Add(new CheckBoxOption(settings.SkillInfo.ProcCoefficient));

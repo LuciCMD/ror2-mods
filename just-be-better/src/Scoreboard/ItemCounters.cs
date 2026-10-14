@@ -22,6 +22,7 @@ namespace JustBeBetter.Scoreboard
         private const float RefreshSeconds = 1f;
 
         private readonly ScoreboardSettings settings;
+        private readonly Func<bool> countHidden;
         private readonly ManualLogSource log;
         private readonly ConditionalWeakTable<ScoreboardStrip, Row> rows = new ConditionalWeakTable<ScoreboardStrip, Row>();
         private readonly ConditionalWeakTable<ScoreboardController, Header> headers = new ConditionalWeakTable<ScoreboardController, Header>();
@@ -32,9 +33,11 @@ namespace JustBeBetter.Scoreboard
         private bool failed;
         private bool handBackFailed;
 
-        internal ItemCounters(ScoreboardSettings settings, ManualLogSource log)
+        // countHidden follows Unhide Items, so the total matches the icons the row shows
+        internal ItemCounters(ScoreboardSettings settings, Func<bool> countHidden, ManualLogSource log)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.countHidden = countHidden ?? throw new ArgumentNullException(nameof(countHidden));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
         }
 
@@ -269,11 +272,12 @@ namespace JustBeBetter.Scoreboard
         private CounterText.Tally Count(Inventory inventory)
         {
             tally.Clear();
+            bool hiddenToo = countHidden();
             for (int i = 0; i < ItemCatalog.itemCount; i++)
             {
                 var index = (ItemIndex)i;
                 ItemDef def = ItemCatalog.GetItemDef(index);
-                if (!def || def.hidden)
+                if (!def || (def.hidden && !hiddenToo))
                 {
                     continue;
                 }

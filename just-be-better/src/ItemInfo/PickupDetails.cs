@@ -23,6 +23,7 @@ namespace JustBeBetter.ItemInfo
         private readonly ItemInfoSettings settings;
         private readonly ManualLogSource log;
         private readonly PingCards pings;
+        private readonly SkippedCards skipped;
         private readonly PickupChanges<NotificationInfo> changes = new PickupChanges<NotificationInfo>();
 
         // Each local player's item counts as last seen, to tell what a change added
@@ -39,11 +40,12 @@ namespace JustBeBetter.ItemInfo
         private NotificationInfo? shownInfo;
         private string? shownGameText;
 
-        internal PickupDetails(ItemInfoSettings settings, ManualLogSource log, PingCards pings)
+        internal PickupDetails(ItemInfoSettings settings, ManualLogSource log, PingCards pings, SkippedCards skipped)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.log = log ?? throw new ArgumentNullException(nameof(log));
             this.pings = pings ?? throw new ArgumentNullException(nameof(pings));
+            this.skipped = skipped ?? throw new ArgumentNullException(nameof(skipped));
         }
 
         public void Enable()
@@ -77,6 +79,7 @@ namespace JustBeBetter.ItemInfo
 
             Inventory.onInventoryChangedGlobal += OnInventoryChanged;
             changes.Matched += OnMatched;
+            skipped.Skipped += OnSkipped;
         }
 
         public void Disable()
@@ -85,6 +88,24 @@ namespace JustBeBetter.ItemInfo
             On.RoR2.CharacterMasterNotificationQueue.PushNotification -= OnPushNotification;
             Inventory.onInventoryChangedGlobal -= OnInventoryChanged;
             changes.Matched -= OnMatched;
+            skipped.Skipped -= OnSkipped;
+        }
+
+        // Stands in for the card that was left out, so it takes that pickup's change
+        private void OnSkipped(CharacterMaster master, ItemIndex index)
+        {
+            try
+            {
+                ItemDef item = ItemCatalog.GetItemDef(index);
+                if (PairsChanges && item && !item.hidden && IsLocal(master))
+                {
+                    changes.CardQueued(new NotificationInfo(item, null, false, 0), (int)index, Time.unscaledTime, false);
+                }
+            }
+            catch (Exception e)
+            {
+                log.LogError($"Couldn't drop a hidden pickup's change, the next card of that item may read it: {e}");
+            }
         }
 
         private void OnPushNotification(

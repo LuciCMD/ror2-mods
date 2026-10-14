@@ -87,6 +87,10 @@ internal static partial class Program
         RunStatsEdge();
         RunScoreboard();
         RunScoreboardEdge();
+        RunNotifications();
+        RunNotificationEdge();
+        RunHiddenEdge();
+        RunInspectEdge();
     }
 
     private static void Test(string name, Action body)

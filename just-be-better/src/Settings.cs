@@ -2,9 +2,11 @@ using System;
 using BepInEx.Configuration;
 using JustBeBetter.BuffInfo;
 using JustBeBetter.Cooldowns;
+using JustBeBetter.Hidden;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Mouse;
+using JustBeBetter.Notifications;
 using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
 using JustBeBetter.Scoreboard;
@@ -31,6 +33,8 @@ namespace JustBeBetter
             Safety = new SafetySettings(config);
             Pickers = new PickerSettings(config);
             ItemInfo = new ItemInfoSettings(config);
+            Notifications = new NotificationSettings(config);
+            Hidden = new HiddenSettings(config);
             SkillInfo = new SkillInfoSettings(config);
             Cooldowns = new CooldownSettings(config);
             Buffs = new BuffInfoSettings(config);
@@ -64,6 +68,10 @@ namespace JustBeBetter
         internal PickerSettings Pickers { get; }
 
         internal ItemInfoSettings ItemInfo { get; }
+
+        internal NotificationSettings Notifications { get; }
+
+        internal HiddenSettings Hidden { get; }
 
         internal SkillInfoSettings SkillInfo { get; }
 

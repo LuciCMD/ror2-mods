@@ -3,18 +3,24 @@ using BepInEx.Logging;
 
 namespace JustBeBetter.ItemInfo
 {
-    // The Item Info section's parts, the pickup card, inventory hover and ping cards, each starting on its own
-    // so one failing leaves the others running
+    // The Item Info section's parts, the pickup card, inventory hover, the inspect panel and ping cards, each
+    // starting on its own so one failing leaves the others running
     internal sealed class ItemInfoFeature : IFeature
     {
         private readonly IFeature[] parts;
         private readonly ManualLogSource log;
 
-        internal ItemInfoFeature(ItemInfoSettings settings, ManualLogSource log)
+        // Shared with Pickup Notifications, which lets a ping's card through and says which pickups it left out
+        internal ItemInfoFeature(ItemInfoSettings settings, PingCards pings, SkippedCards skipped, ManualLogSource log)
         {
             this.log = log ?? throw new ArgumentNullException(nameof(log));
-            var pings = new PingCards();
-            parts = new IFeature[] { new PickupDetails(settings, log, pings), new HoverDetails(settings, log), new PingDetails(settings, log, pings) };
+            parts = new IFeature[]
+            {
+                new PickupDetails(settings, log, pings, skipped),
+                new HoverDetails(settings, log),
+                new InspectDetails(settings, log),
+                new PingDetails(settings, log, pings),
+            };
         }
 
         public void Enable()

@@ -36,6 +36,7 @@ internal static partial class Program
         Test("Counters edge model: after a failure the row shows the game's count as the log says", SbEdgeFailedLeavesOurs);
         Test("Counters edge model: rented and shared items count toward the total as the game counts them", SbEdgeRentalChanneled);
         Test("Counters edge model: hidden items add nothing, temp or not", SbEdgeHiddenItems);
+        Test("Counters edge model: with Unhide Items on, hidden items add to the total the row's icons show", SbEdgeHiddenItemsUnhidden);
         Test("Counters edge: the members the header reads exist in the installed game", SbEdgeHeaderReflected);
         Test("Counters edge: the header keeps each of the game's own words once, however the label ends", SbEdgeHeaderWords);
         Test("Counters edge header: a void corruption with the same total shows in the header next frame", SbEdgeHeaderVoidSwap);
@@ -406,6 +407,7 @@ internal static partial class Program
         private readonly ConditionalWeakTable<SbInventory, Changes> changes = new ConditionalWeakTable<SbInventory, Changes>();
         private readonly CounterText.Tally tally = new CounterText.Tally();
         public Options Options = CounterDefaults;
+        public bool CountHidden;
         public float Now;
         public int FrameCount;
         public bool Failed;
@@ -604,7 +606,7 @@ internal static partial class Program
             tally.Clear();
             for (int i = 0; i < SbCatalog.Length; i++)
             {
-                if (SbCatalog[i].Hidden)
+                if (SbCatalog[i].Hidden && !CountHidden)
                 {
                     continue;
                 }
@@ -936,6 +938,17 @@ internal static partial class Program
         SbFrame(mod, 0.016f, strip);
         Expect(!strip.Text.Contains('[', StringComparison.Ordinal), $"hidden temp items made brackets: {strip.Text}");
         Expect(strip.Text.Contains("<color=#FFFFFF>1</color>", StringComparison.Ordinal), $"hidden items in the total: {strip.Text}");
+    }
+
+    private static void SbEdgeHiddenItemsUnhidden()
+    {
+        var mod = new SbMirror { CountHidden = true };
+        SbInventory a = SbInv(mod, white: 1);
+        a.Permanent[5] = 4;
+        var strip = new SbStrip();
+        strip.SetMaster(a, mod);
+        SbFrame(mod, 0.016f, strip);
+        Expect(strip.Text.Contains("<color=#FFFFFF>5</color>", StringComparison.Ordinal), $"hidden items left out of the total: {strip.Text}");
     }
 
     private const float SbDt = 1f / 60f;

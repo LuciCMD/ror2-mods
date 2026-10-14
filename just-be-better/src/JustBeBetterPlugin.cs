@@ -6,10 +6,12 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using JustBeBetter.BuffInfo;
 using JustBeBetter.Cooldowns;
+using JustBeBetter.Hidden;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
 using JustBeBetter.Lobby;
 using JustBeBetter.Mouse;
+using JustBeBetter.Notifications;
 using JustBeBetter.Pickers;
 using JustBeBetter.Safety;
 using JustBeBetter.Saves;
@@ -44,12 +46,21 @@ namespace JustBeBetter
             StartPart(settings.Loading.Enabled, LoadingSettings.Section, log => new LoadingFeature(settings.Loading, gameObject, log));
             StartPart(settings.Safety.Enabled, SafetySettings.Section, log => new SafetyFeature(settings.Safety, log));
             StartPart(settings.Pickers.Enabled, PickerSettings.Section, log => new PickerSearch(settings.Pickers, settings.ItemInfo, log, new Favourites("Item Favourites", log)));
-            StartPart(settings.ItemInfo.Enabled, ItemInfoSettings.Section, log => new ItemInfoFeature(settings.ItemInfo, log));
+            var pings = new PingCards();
+            var skipped = new SkippedCards();
+            StartPart(settings.ItemInfo.Enabled, ItemInfoSettings.Section, log => new ItemInfoFeature(settings.ItemInfo, pings, skipped, log));
+            StartPart(settings.Notifications.Enabled, NotificationSettings.Section, log => new PickupCards(settings.Notifications, pings, skipped, log));
+            StartPart(settings.Hidden.Enabled, HiddenSettings.Section, log => new Unhider(settings.Hidden, log));
             StartPart(settings.SkillInfo.Enabled, SkillInfoSettings.Section, log => new SkillDetails(settings.SkillInfo, settings.ItemInfo, log));
             StartPart(settings.Cooldowns.Enabled, CooldownSettings.Section, log => new CooldownTimers(settings.Cooldowns, log));
             StartPart(settings.Buffs.Enabled, BuffInfoSettings.Section, log => new BuffDetails(settings.Buffs, log));
             StartPart(settings.Stats.Enabled, StatsDisplaySettings.Section, log => new StatsPanel(settings.Stats, log));
-            StartPart(settings.Scoreboard.Enabled, ScoreboardSettings.Section, log => new ItemCounters(settings.Scoreboard, log));
+            // Enabled is read at launch, so Unhide Items only counts while its part is running
+            bool unhiding = settings.Hidden.Enabled.Value;
+            StartPart(
+                settings.Scoreboard.Enabled,
+                ScoreboardSettings.Section,
+                log => new ItemCounters(settings.Scoreboard, () => unhiding && settings.Hidden.UnhideItems.Value, log));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));
