@@ -137,6 +137,10 @@ namespace JustBeBetter
                 new CheckBoxConfig { checkIfDisabled = () => !scoreboard.TierCounts.Value || scoreboard.CountTempWithPermanent.Value }));
             Add(new CheckBoxOption(scoreboard.CountTempWithPermanent));
 
+            Enabled(settings.ImmuneBar.Enabled);
+            Add(new ColorOption(settings.ImmuneBar.BarColour));
+            Add(new CheckBoxOption(settings.ImmuneBar.BossBar));
+
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 

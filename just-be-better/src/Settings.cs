@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using JustBeBetter.BuffInfo;
 using JustBeBetter.Cooldowns;
 using JustBeBetter.Hidden;
+using JustBeBetter.ImmuneBar;
 using JustBeBetter.InventorySort;
 using JustBeBetter.ItemInfo;
 using JustBeBetter.Loading;
@@ -42,6 +43,7 @@ namespace JustBeBetter
             Buffs = new BuffInfoSettings(config);
             Stats = new StatsDisplaySettings(config);
             Scoreboard = new ScoreboardSettings(config);
+            ImmuneBar = new ImmuneBarSettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -86,6 +88,8 @@ namespace JustBeBetter
         internal StatsDisplaySettings Stats { get; }
 
         internal ScoreboardSettings Scoreboard { get; }
+
+        internal ImmuneBarSettings ImmuneBar { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 

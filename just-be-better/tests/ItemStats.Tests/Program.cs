@@ -94,6 +94,8 @@ internal static partial class Program
         RunNotificationEdge();
         RunHiddenEdge();
         RunInspectEdge();
+        RunImmuneBar();
+        RunImmuneBarEdge();
     }
 
     private static void Test(string name, Action body)
