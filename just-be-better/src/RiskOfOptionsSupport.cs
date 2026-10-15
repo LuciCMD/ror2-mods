@@ -148,10 +148,12 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Cursor.FreeInMenus));
             Add(new CheckBoxOption(settings.Cursor.FreeWhileLoading));
 
-            // Both act during startup, so a change only shows on the next launch
+            // All act during startup, so a change only shows on the next launch
             Enabled(settings.Loading.Enabled);
             Add(new CheckBoxOption(settings.Loading.FasterEffectScan, new CheckBoxConfig { restartRequired = true }));
             Add(new CheckBoxOption(settings.Loading.BundleCache, new CheckBoxConfig { restartRequired = true }));
+            Add(new CheckBoxOption(settings.Loading.SkipSplash, new CheckBoxConfig { restartRequired = true }));
+            Add(new CheckBoxOption(settings.Loading.SkipIntro, new CheckBoxConfig { restartRequired = true }));
 
             Enabled(settings.Sounds.Enabled);
             Add(new IntSliderOption(settings.Sounds.ChimeVolume, Percent()));

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace JustBeBetter.Loading
 {
-    // Speeds up the effect scan, measures startup and writes a report once the main menu shows, then times each
+    // Speeds up the effect scan, skips the splash and intro, measures startup and writes a report once the main menu shows, then times each
     // stage load
     internal sealed class LoadingFeature : IFeature
     {
@@ -14,6 +14,7 @@ namespace JustBeBetter.Loading
         private readonly GameObject host;
         private readonly ManualLogSource log;
         private StartupHooks? hooks;
+        private IntroSkip? introSkip;
         private FreezeWatcher? freezeWatcher;
         private StageWatcher? stageWatcher;
         private bool reported;
@@ -34,6 +35,8 @@ namespace JustBeBetter.Loading
 
             hooks = new StartupHooks(log, OnMainMenu);
             hooks.Enable();
+            introSkip = new IntroSkip(settings, log);
+            introSkip.Enable();
             freezeWatcher = host.AddComponent<FreezeWatcher>();
             log.LogInfo("Timing startup; the report follows once the main menu shows");
         }
@@ -41,6 +44,7 @@ namespace JustBeBetter.Loading
         public void Disable()
         {
             hooks?.Disable();
+            introSkip?.Disable();
             if (freezeWatcher)
             {
                 UnityEngine.Object.Destroy(freezeWatcher);
@@ -74,6 +78,7 @@ namespace JustBeBetter.Loading
                 }
 
                 hooks?.Disable();
+                introSkip?.Disable();
                 DisposePatcherHooks();
 
                 // Bundle timing stops and the bundle cache starts making its copies

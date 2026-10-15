@@ -31,6 +31,16 @@ namespace JustBeBetter.Loading
                 "Bundle Cache",
                 true,
                 "Keeps a quick-loading copy of mods' slow-to-open asset bundles in BepInEx\\cache\\Just_Be_Better and opens that instead. Takes a few hundred MB of disk.");
+            SkipSplash = config.Bind(
+                Section,
+                "Skip Splash",
+                true,
+                "Leaves out the logo screens at startup, so the loading screen stays up until the intro or title.");
+            SkipIntro = config.Bind(
+                Section,
+                "Skip Intro",
+                true,
+                "Leaves out the opening cutscene and goes to the title once loading finishes.");
         }
 
         internal ConfigEntry<bool> Enabled { get; }
@@ -38,5 +48,9 @@ namespace JustBeBetter.Loading
         internal ConfigEntry<bool> FasterEffectScan { get; }
 
         internal ConfigEntry<bool> BundleCache { get; }
+
+        internal ConfigEntry<bool> SkipSplash { get; }
+
+        internal ConfigEntry<bool> SkipIntro { get; }
     }
 }

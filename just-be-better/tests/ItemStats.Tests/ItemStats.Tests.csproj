@@ -37,6 +37,7 @@
     <Compile Include="$(Src)\..\Scoreboard\CounterText.cs" Link="Src\CounterText.cs" />
     <Compile Include="$(Src)\..\Notifications\CardRules.cs" Link="Src\CardRules.cs" />
     <Compile Include="$(Src)\..\ImmuneBar\ImmuneRules.cs" Link="Src\ImmuneRules.cs" />
+    <Compile Include="$(Src)\..\Loading\IntroRules.cs" Link="Src\IntroRules.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->
