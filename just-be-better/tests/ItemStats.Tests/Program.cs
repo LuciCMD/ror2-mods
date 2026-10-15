@@ -98,6 +98,8 @@ internal static partial class Program
         RunImmuneBarEdge();
         RunIntroSkip();
         RunIntroSkipEdge();
+        RunChestTweaks();
+        RunChestTweaksEdge();
     }
 
     private static void Test(string name, Action body)

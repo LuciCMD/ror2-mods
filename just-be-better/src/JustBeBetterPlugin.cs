@@ -5,6 +5,7 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using JustBeBetter.BuffInfo;
+using JustBeBetter.ChestTweaks;
 using JustBeBetter.Cooldowns;
 using JustBeBetter.Hidden;
 using JustBeBetter.ImmuneBar;
@@ -71,6 +72,7 @@ namespace JustBeBetter
                 ScoreboardSettings.Section,
                 log => new ItemCounters(settings.Scoreboard, () => unhiding && settings.Hidden.UnhideItems.Value, log));
             StartPart(settings.ImmuneBar.Enabled, ImmuneBarSettings.Section, log => new ImmuneHealthBar(settings.ImmuneBar, log));
+            StartPart(settings.Chests.Enabled, ChestTweaksSettings.Section, log => new ChestTweaksFeature(settings.Chests, log));
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));

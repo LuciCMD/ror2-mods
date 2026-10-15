@@ -1,6 +1,7 @@
 using System;
 using BepInEx.Configuration;
 using JustBeBetter.BuffInfo;
+using JustBeBetter.ChestTweaks;
 using JustBeBetter.Cooldowns;
 using JustBeBetter.Hidden;
 using JustBeBetter.ImmuneBar;
@@ -44,6 +45,7 @@ namespace JustBeBetter
             Stats = new StatsDisplaySettings(config);
             Scoreboard = new ScoreboardSettings(config);
             ImmuneBar = new ImmuneBarSettings(config);
+            Chests = new ChestTweaksSettings(config);
             LobbyEnabled = BindEnabled(
                 config,
                 LobbySection,
@@ -90,6 +92,8 @@ namespace JustBeBetter
         internal ScoreboardSettings Scoreboard { get; }
 
         internal ImmuneBarSettings ImmuneBar { get; }
+
+        internal ChestTweaksSettings Chests { get; }
 
         internal ConfigEntry<bool> LobbyEnabled { get; }
 

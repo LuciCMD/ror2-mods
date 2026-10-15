@@ -141,6 +141,30 @@ namespace JustBeBetter
             Add(new ColorOption(settings.ImmuneBar.BarColour));
             Add(new CheckBoxOption(settings.ImmuneBar.BossBar));
 
+            Enabled(settings.Chests.Enabled);
+            Add(new ColorOption(settings.Chests.OutlineColour));
+            foreach (ConfigEntry<bool> entry in settings.Chests.OutlineEntries)
+            {
+                Add(new CheckBoxOption(entry));
+            }
+
+            foreach (ConfigEntry<bool> entry in settings.Chests.HideEntries)
+            {
+                Add(new CheckBoxOption(entry));
+            }
+
+            Add(new CheckBoxOption(settings.Chests.Fade));
+            Add(new StepSliderOption(
+                settings.Chests.HideDelay,
+                new StepSliderConfig
+                {
+                    min = 0f,
+                    max = ChestTweaks.ChestTweaksSettings.MaxHideDelay,
+                    increment = 0.5f,
+                    FormatString = "{0:0.0} s",
+                }));
+            Add(new CheckBoxOption(settings.Chests.KeepAsDrifter));
+
             Enabled(settings.LobbyEnabled);
             Enabled(settings.SavesEnabled);
 
