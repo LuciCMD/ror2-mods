@@ -16,6 +16,7 @@ internal static partial class Program
         Test("Picker sort: tier ranks put the voids after yellow and other tiers after them", SortTierRanks);
         Test("Picker sort: no items or no keys give an empty order", SortEmpty);
         Test("Picker sort: an unknown order from a hand-edited config keeps the game's order", SortUnknownOrder);
+        Test("Picker sort: unusable crafting items go last in every order, favourites still first", SortUnusableLast);
     }
 
     private static string Arranged(IReadOnlyList<SortKey> keys, PickerOrder order)
@@ -116,5 +117,32 @@ internal static partial class Program
         Equal(
             "Soldier's Syringe,ukulele,Lost Seer's Lenses,Brilliant Behemoth,Armor-Piercing Rounds,Titanic Knurl,Tougher Times",
             Arranged(Mixed(), (PickerOrder)99));
+    }
+
+    private static SortKey Craft(string name, ItemTier tier, int count, bool unusable, bool favourite = false)
+    {
+        return new SortKey(name, PickerSort.TierRank(tier), count, favourite, tier, false, unusable);
+    }
+
+    // Crafting menu, unusable items after the rest in every order, favourites still first
+    private static void SortUnusableLast()
+    {
+        var keys = new List<SortKey>
+        {
+            Craft("Bison Steak", ItemTier.Tier1, 3, true),
+            Craft("Syringe", ItemTier.Tier1, 1, false),
+            Craft("Behemoth", ItemTier.Tier3, 1, true, true),
+            Craft("Ukulele", ItemTier.Tier2, 2, false),
+            Craft("Crowbar", ItemTier.Tier1, 4, true),
+        };
+        Equal("Behemoth,Syringe,Ukulele,Bison Steak,Crowbar", Arranged(keys, PickerOrder.GamesOrder));
+        Equal("Behemoth,Ukulele,Syringe,Crowbar,Bison Steak", Arranged(keys, PickerOrder.MostHeldFirst));
+        Equal("Behemoth,Syringe,Ukulele,Bison Steak,Crowbar", Arranged(keys, PickerOrder.AToZ));
+        Equal("Behemoth,Syringe,Ukulele,Crowbar,Bison Steak", Arranged(keys, PickerOrder.ByTier));
+        var rules = new JustBeBetter.InventorySort.SortRules(
+            JustBeBetter.InventorySort.TierOrder.RarestFirst, false, JustBeBetter.InventorySort.StackOrder.MostFirst, JustBeBetter.InventorySort.ScrapPosition.First);
+        Equal(
+            "Behemoth,Ukulele,Syringe,Crowbar,Bison Steak",
+            string.Join(",", PickerSort.Arrange(keys, PickerOrder.ByTier, rules).Select(i => keys[i].Name)));
     }
 }

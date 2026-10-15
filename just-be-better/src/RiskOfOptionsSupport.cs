@@ -61,6 +61,8 @@ namespace JustBeBetter
             Add(new CheckBoxOption(settings.Pickers.CloseOnMovement));
             AddLabelled(new ChoiceOption(settings.Pickers.CommandSorting), Pickers.PickerSettings.OrderLabels, log);
             AddLabelled(new ChoiceOption(settings.Pickers.ScrapperSorting), Pickers.PickerSettings.OrderLabels, log);
+            AddLabelled(new ChoiceOption(settings.Pickers.CraftingSorting), Pickers.PickerSettings.OrderLabels, log);
+            Add(new CheckBoxOption(settings.Pickers.UsableFirst));
 
             Enabled(settings.ItemInfo.Enabled);
             Add(new CheckBoxOption(settings.ItemInfo.FullDescriptions));

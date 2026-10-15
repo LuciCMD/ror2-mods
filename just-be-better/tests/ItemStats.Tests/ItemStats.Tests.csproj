@@ -21,6 +21,7 @@
     <Compile Include="$(Src)\..\ItemInfo\PickupChanges.cs" Link="Src\PickupChanges.cs" />
     <Compile Include="$(Src)\..\Pickers\WindowFit.cs" Link="Src\WindowFit.cs" />
     <Compile Include="$(Src)\..\Pickers\PickerSort.cs" Link="Src\PickerSort.cs" />
+    <Compile Include="$(Src)\..\Pickers\OpenCounts.cs" Link="Src\OpenCounts.cs" />
     <Compile Include="$(Src)\..\InventorySort\InventoryOrder.cs" Link="Src\InventoryOrder.cs" />
     <Compile Include="$(Src)\..\ItemInfo\PingQueue.cs" Link="Src\PingQueue.cs" />
     <Compile Include="$(Src)\..\ItemInfo\PingCards.cs" Link="Src\PingCards.cs" />

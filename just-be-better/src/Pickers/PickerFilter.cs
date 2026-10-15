@@ -13,7 +13,7 @@ using UnityEngine.UI;
 namespace JustBeBetter.Pickers
 {
     // Lives on an item picker panel: a search box just above its grid, buttons hidden when they don't match,
-    // favourites moved to the front, the rest sorted as set for the Command menu and Scrapper
+    // favourites moved to the front, the rest sorted as set for the Command menu, Scrapper and crafting menus
     // The order is checked each frame and restored, so a setting change shows at once
     // LookingGlass sorts the options before the panel gets them, so its order is the game's order here
     internal sealed class PickerFilter : MonoBehaviour
@@ -34,18 +34,24 @@ namespace JustBeBetter.Pickers
         private List<Entry>? arranged;
         private PickerOrder arrangedFor;
         private SortRules? arrangedRules;
+        private ConfigEntry<bool>? usableFirst;
+        private bool arrangedUsable;
+        private OpenCounts? openCounts;
         private RectTransform? bar;
         private TMP_InputField? searchField;
         private bool automaticNavigation;
         private string[] words = Array.Empty<string>();
 
         // No sorting setting keeps the game's order after the favourites, inventory rules make By Tier follow Inventory Sort
+        // and usableFirst drops the entries added as unusable to the bottom, keepOpenCounts sorts by the counts it opened with
         internal static PickerFilter For(
             PickupPickerPanel panel,
             Favourites favourites,
             bool automaticNavigation,
             ConfigEntry<PickerOrder>? sorting,
-            Func<SortRules?>? inventoryRules = null)
+            Func<SortRules?>? inventoryRules = null,
+            ConfigEntry<bool>? usableFirst = null,
+            bool keepOpenCounts = false)
         {
             if (!panel.TryGetComponent(out PickerFilter filter))
             {
@@ -58,6 +64,12 @@ namespace JustBeBetter.Pickers
 
             filter.sorting = sorting;
             filter.inventoryRules = inventoryRules;
+            filter.usableFirst = usableFirst;
+            if (keepOpenCounts && filter.openCounts == null)
+            {
+                filter.openCounts = new OpenCounts();
+            }
+
             return filter;
         }
 
@@ -70,9 +82,10 @@ namespace JustBeBetter.Pickers
         }
 
         // In the game's order, with the count as it is now so buttons don't move under the cursor
-        internal void Add(MPButton button, string? key, string text, string name, int tierRank, int count, ItemTier? tier, bool scrap)
+        internal void Add(MPButton button, string? key, string text, string name, int tierRank, int count, ItemTier? tier, bool scrap, bool unusable)
         {
-            entries.Add(new Entry(button, key, text, name, tierRank, count, tier, scrap));
+            int sortCount = openCounts != null ? openCounts.Keep(key, count) : count;
+            entries.Add(new Entry(button, key, text, name, tierRank, sortCount, tier, scrap, unusable));
             arranged = null;
             FavouriteMark.Attach(button.gameObject, () => favourites!.Contains(key), () => Toggle(key), true);
         }
@@ -149,19 +162,23 @@ namespace JustBeBetter.Pickers
             }
 
             SortRules? rules = inventoryRules?.Invoke();
-            if (arranged == null || arrangedFor != sorting.Value || !Nullable.Equals(arrangedRules, rules))
+            bool usable = usableFirst != null && usableFirst.Value;
+            if (arranged == null || arrangedFor != sorting.Value || !Nullable.Equals(arrangedRules, rules) || arrangedUsable != usable)
             {
                 arrangedFor = sorting.Value;
                 arrangedRules = rules;
-                arranged = Arranged(entries.Where(e => e.Button).ToList(), arrangedFor, rules);
+                arrangedUsable = usable;
+                arranged = Arranged(entries.Where(e => e.Button).ToList(), arrangedFor, rules, usable);
             }
 
             return arranged.Where(e => e.Button).ToList();
         }
 
-        private List<Entry> Arranged(List<Entry> live, PickerOrder order, SortRules? rules = null)
+        private List<Entry> Arranged(List<Entry> live, PickerOrder order, SortRules? rules = null, bool usableFirst = false)
         {
-            List<SortKey> keys = live.Select(e => new SortKey(e.Name, e.TierRank, e.Count, IsFavourite(e), e.Tier, e.Scrap)).ToList();
+            List<SortKey> keys = live
+                .Select(e => new SortKey(e.Name, e.TierRank, e.Count, IsFavourite(e), e.Tier, e.Scrap, usableFirst && e.Unusable))
+                .ToList();
             return PickerSort.Arrange(keys, order, rules).Select(i => live[i]).ToList();
         }
 
@@ -280,7 +297,7 @@ namespace JustBeBetter.Pickers
 
         private readonly struct Entry
         {
-            internal Entry(MPButton button, string? key, string text, string name, int tierRank, int count, ItemTier? tier, bool scrap)
+            internal Entry(MPButton button, string? key, string text, string name, int tierRank, int count, ItemTier? tier, bool scrap, bool unusable)
             {
                 Button = button;
                 Key = key;
@@ -290,6 +307,7 @@ namespace JustBeBetter.Pickers
                 Count = count;
                 Tier = tier;
                 Scrap = scrap;
+                Unusable = unusable;
             }
 
             internal MPButton Button { get; }
@@ -307,6 +325,8 @@ namespace JustBeBetter.Pickers
             internal ItemTier? Tier { get; }
 
             internal bool Scrap { get; }
+
+            internal bool Unusable { get; }
         }
     }
 }

@@ -22,7 +22,8 @@ namespace JustBeBetter.Pickers
                 config,
                 Section,
                 "Adds a search box, favourite stars, item counts and tooltips to every item picker, such as the "
-                + "Command menu and the Scrapper, sorts those two, and lets you size, see through and close its window.");
+                + "Command menu and the Scrapper, sorts those two and crafting menus, and lets you size, see through "
+                + "and close its window.");
 
             ItemCounts = config.Bind(
                 Section,
@@ -104,6 +105,19 @@ namespace JustBeBetter.Pickers
                 "How the Scrapper orders your items, after your favourites. The game's order is the order you got "
                 + "them in. By Tier sorts them like Inventory Sort does your inventory bar, or common to rare when "
                 + "that part is off.");
+
+            CraftingSorting = config.Bind(
+                Section,
+                "Crafting Sorting",
+                PickerOrder.ByTier,
+                "How crafting menus such as the Wandering Chef's order your items, after your favourites. By Tier "
+                + "sorts them like Inventory Sort does your inventory bar, or common to rare when that part is off.");
+
+            UsableFirst = config.Bind(
+                Section,
+                "Usable Items First",
+                true,
+                "Puts the items no recipe can take at the bottom of a crafting menu.");
         }
 
         internal ConfigEntry<bool> Enabled { get; }
@@ -129,5 +143,9 @@ namespace JustBeBetter.Pickers
         internal ConfigEntry<PickerOrder> CommandSorting { get; }
 
         internal ConfigEntry<PickerOrder> ScrapperSorting { get; }
+
+        internal ConfigEntry<PickerOrder> CraftingSorting { get; }
+
+        internal ConfigEntry<bool> UsableFirst { get; }
     }
 }

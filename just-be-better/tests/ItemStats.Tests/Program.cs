@@ -75,6 +75,7 @@ internal static partial class Program
         RunHoverEdge();
         RunPickerSort();
         RunPickerSortEdge();
+        RunCraftingSortEdge();
         RunInventorySort();
         RunInventorySortEdge();
         RunPing();

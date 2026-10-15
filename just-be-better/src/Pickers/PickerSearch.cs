@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -21,6 +22,7 @@ namespace JustBeBetter.Pickers
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
 
         private static readonly HashSet<string> Logged = new HashSet<string>();
+        private static readonly HashSet<string> LoggedUsable = new HashSet<string>();
 
         private readonly PickerSettings settings;
         private readonly ItemInfoSettings info;
@@ -31,6 +33,9 @@ namespace JustBeBetter.Pickers
         private FieldInfo? optionsField;
         private FieldInfo? automaticNavigationField;
         private FieldInfo? inspectField;
+        private HashSet<PickupIndex>? usableIngredients;
+        private Run? usableFor;
+        private bool recipesFailed;
 
         internal PickerSearch(PickerSettings settings, ItemInfoSettings info, Func<SortRules?> inventoryRules, ManualLogSource log, Favourites favourites)
         {
@@ -152,8 +157,10 @@ namespace JustBeBetter.Pickers
             ReadOnlyCollection<MPButton> elements = allocator.elements;
             bool automatic = automaticNavigationField?.GetValue(panel) is bool b && b;
             ConfigEntry<PickerOrder>? sorting = SortingFor(panel);
-            Func<SortRules?>? follow = sorting == settings.ScrapperSorting ? inventoryRules : null;
-            PickerFilter filter = PickerFilter.For(panel, favourites, automatic, sorting, follow);
+            bool crafting = sorting == settings.CraftingSorting;
+            Func<SortRules?>? follow = sorting == settings.ScrapperSorting || crafting ? inventoryRules : null;
+            HashSet<PickupIndex>? usable = crafting ? UsableIngredients() : null;
+            PickerFilter filter = PickerFilter.For(panel, favourites, automatic, sorting, follow, crafting ? settings.UsableFirst : null, crafting);
             filter.Clear();
             CharacterMaster? master = PickerDetails.MasterOf(panel.GetComponentInParent<HUD>());
             Inventory? inventory = master != null ? master.inventory : null;
@@ -170,16 +177,75 @@ namespace JustBeBetter.Pickers
                     item ? PickerSort.TierRank(item!.tier) : PickerSort.NotAnItem,
                     PickerDetails.HeldCount(def, inventory),
                     item ? item!.tier : (ItemTier?)null,
-                    item && InventorySorter.IsScrap(item!));
+                    item && InventorySorter.IsScrap(item!),
+                    usable != null && !usable.Contains(options[i].pickup.pickupIndex));
             }
 
             filter.Apply();
             LogSorting(panel.name, sorting, count, inventory != null, follow?.Invoke() != null);
+            if (usable != null && LoggedUsable.Add(panel.name))
+            {
+                int unusable = options.Take(count).Count(o => !usable.Contains(o.pickup.pickupIndex));
+                log.LogInfo($"{panel.name}: {usable.Count} pickups some recipe can take, {unusable} of the {count} offered can't");
+            }
+        }
+
+        // Every pickup a recipe of this run can take, the same list the menu starts from with its slots empty
+        // Recipes for a DLC the run doesn't have are left out, as the game does
+        private HashSet<PickupIndex>? UsableIngredients()
+        {
+            if (recipesFailed)
+            {
+                return null;
+            }
+
+            if (usableIngredients != null && usableFor == Run.instance)
+            {
+                return usableIngredients;
+            }
+
+            var found = new HashSet<PickupIndex>();
+            try
+            {
+                CraftableCatalog.RecipeEntry[] recipes = CraftableCatalog.GetAllRecipes();
+                if (Run.instance)
+                {
+                    CraftableCatalog.FilterByEntitlement(ref recipes);
+                }
+
+                foreach (CraftableCatalog.RecipeEntry recipe in recipes)
+                {
+                    List<PickupIndex>? pickups = recipe?.GetAllPickups();
+                    if (pickups != null)
+                    {
+                        found.UnionWith(pickups);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (!recipesFailed)
+                {
+                    recipesFailed = true;
+                    log.LogWarning($"Couldn't read the recipes, so unusable items stay in their sorted place: {e}");
+                }
+
+                return null;
+            }
+
+            usableIngredients = found;
+            usableFor = Run.instance;
+            return found;
         }
 
         // By the panel, as the drone scrapper's DroneScrapperPickerPanel isn't the Scrapper
         private ConfigEntry<PickerOrder>? SortingFor(PickupPickerPanel panel)
         {
+            if (panel.GetComponent<CraftingPanel>())
+            {
+                return settings.CraftingSorting;
+            }
+
             string name = panel.gameObject.name;
             if (name.StartsWith("CommandPickerPanel", StringComparison.Ordinal))
             {
@@ -210,7 +276,7 @@ namespace JustBeBetter.Pickers
 
             if (sorting == null)
             {
-                log.LogInfo($"{name}: {count} items, not the Command menu or Scrapper so only favourites move");
+                log.LogInfo($"{name}: {count} items, not the Command menu, Scrapper or a crafting menu so only favourites move");
             }
             else if (!counted && sorting.Value != PickerOrder.GamesOrder)
             {

@@ -53,7 +53,9 @@ namespace JustBeBetter.Pickers
                 return new List<int>();
             }
 
-            IOrderedEnumerable<int> sorted = Enumerable.Range(0, keys.Count).OrderBy(i => keys[i].Favourite ? 0 : 1);
+            IOrderedEnumerable<int> sorted = Enumerable.Range(0, keys.Count)
+                .OrderBy(i => keys[i].Favourite ? 0 : 1)
+                .ThenBy(i => keys[i].Unusable ? 1 : 0);
             switch (order)
             {
                 case PickerOrder.MostHeldFirst:
@@ -82,8 +84,8 @@ namespace JustBeBetter.Pickers
 
     internal readonly struct SortKey
     {
-        // Tier is null for anything that isn't an item
-        internal SortKey(string? name, int tierRank, int count, bool favourite, ItemTier? tier = null, bool scrap = false)
+        // Tier is null for anything that isn't an item, unusable ones go after the rest whatever the order
+        internal SortKey(string? name, int tierRank, int count, bool favourite, ItemTier? tier = null, bool scrap = false, bool unusable = false)
         {
             Name = name;
             TierRank = tierRank;
@@ -91,7 +93,10 @@ namespace JustBeBetter.Pickers
             Favourite = favourite;
             Tier = tier;
             Scrap = scrap;
+            Unusable = unusable;
         }
+
+        internal bool Unusable { get; }
 
         internal ItemTier? Tier { get; }
 
