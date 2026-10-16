@@ -103,6 +103,14 @@ internal static partial class Program
         RunChestTweaksEdge();
         RunToggleFire();
         RunToggleFireEdge();
+        RunAllyCards();
+        RunLuck();
+        RunStackText();
+        RunModEntries();
+        RunAllyCardEdge();
+        RunAllyOthersEdge();
+        RunNewFeatureEdge();
+        RunHuntLuckBinding();
     }
 
     private static void Test(string name, Action body)
@@ -201,6 +209,7 @@ internal static partial class Program
 
     private static readonly MethodInfo FormatM = typeof(ItemStatText).GetMethod("Format", BindingFlags.Static | BindingFlags.NonPublic)!;
     private static readonly MethodInfo AppendLinesM = typeof(ItemStatText).GetMethod("AppendLines", BindingFlags.Static | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo StackLinesM = typeof(ItemStatText).GetMethod("AppendStackLines", BindingFlags.Static | BindingFlags.NonPublic)!;
     private static readonly MethodInfo ValuesM = typeof(ItemStatText).GetMethod("Values", BindingFlags.Static | BindingFlags.NonPublic)!;
 
     private static CharacterMaster Master(float luck)
@@ -210,15 +219,14 @@ internal static partial class Program
         return m;
     }
 
-    private static List<float>? Values(ItemStatsDef def, CharacterMaster m, int count) => (List<float>?)ValuesM.Invoke(null, new object[] { def, m, count });
+    // At the master's own luck, the value a stat line shows
+    private static List<float>? Values(ItemStatsDef def, CharacterMaster m, int count) => (List<float>?)ValuesM.Invoke(null, new object[] { def, m, count, m.luck });
 
-    // Mirrors DescribeItem from the line after the description onwards
+    // DescribeItem's lines after the description, for picking up one more
     private static string Lines(ItemStatsDef def, CharacterMaster m, int held, string arrow = " → ")
     {
         var sb = new StringBuilder();
-        List<float>? after = Values(def, m, held + 1);
-        List<float>? now = held > 0 ? Values(def, m, held) : null;
-        AppendLinesM.Invoke(null, new object?[] { sb, def, now, after, arrow });
+        StackLinesM.Invoke(null, new object?[] { sb, def, m, held, held + 1, arrow });
         return sb.ToString();
     }
 
@@ -256,7 +264,7 @@ internal static partial class Program
         def.valueTypes.Add(ItemStatsDef.ValueType.Utility);
         def.measurementUnits.Add(ItemStatsDef.MeasurementUnits.Number);
         var sb = new StringBuilder();
-        AppendLinesM.Invoke(null, new object?[] { sb, def, new List<float> { 3f }, new List<float> { float.PositiveInfinity }, " → " });
+        AppendLinesM.Invoke(null, new object?[] { sb, def, new List<float> { 3f }, new List<float> { float.PositiveInfinity }, " → ", null, null });
         string s = sb.ToString();
         Console.WriteLine("     " + s.Replace("\n", "\\n"));
         if (s.TrimEnd().EndsWith("→", StringComparison.Ordinal))
@@ -409,7 +417,7 @@ internal static partial class Program
         def.valueTypes.Add(ItemStatsDef.ValueType.Damage);
         def.measurementUnits.Add(ItemStatsDef.MeasurementUnits.ProcCoeff);
         var sb = new StringBuilder();
-        AppendLinesM.Invoke(null, new object?[] { sb, def, new List<float> { 0.5f }, new List<float> { 0.5f }, " → " });
+        AppendLinesM.Invoke(null, new object?[] { sb, def, new List<float> { 0.5f }, new List<float> { 0.5f }, " → ", null, null });
         Equal("\n<color=white>Proc: </color><style=cIsDamage>0.5</style>", sb.ToString());
     }
 

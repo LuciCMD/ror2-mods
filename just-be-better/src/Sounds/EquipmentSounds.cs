@@ -17,6 +17,7 @@ namespace JustBeBetter.Sounds
     {
         private const string ChimeEmitter = "Just_Be_Better Chime";
         private const string SoundEmitter = "Just_Be_Better Sounds";
+        private const string WarHornEmitter = "Just_Be_Better War Horn";
 
         private static SoundSettings? settings;
 
@@ -143,6 +144,12 @@ namespace JustBeBetter.Sounds
             if (id == EquipmentEvents.ChimeId)
             {
                 return QuietEmitter.Get(go, ChimeEmitter, settings.ChimeVolume.Value);
+            }
+
+            // Its own emitter, as it has a volume of its own and plays on the buff's effect, not the equipment
+            if (id == EquipmentEvents.WarHornId)
+            {
+                return QuietEmitter.Get(go, WarHornEmitter, settings.WarHornVolume.Value);
             }
 
             bool listed = EquipmentEvents.Contains(id) && !(id == EquipmentEvents.FruitId && go.GetComponent<CharacterBody>());

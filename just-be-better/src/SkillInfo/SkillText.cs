@@ -93,20 +93,49 @@ namespace JustBeBetter.SkillInfo
 
         private static void AppendProc(StringBuilder procs, ItemDef item, ItemStatsDef def, int count, float luck, float coefficient)
         {
+            // The chance with luck on the line, and luck's share of it below, as the item stats show it
             List<float> values = def.calculateValuesNew(luck, count, coefficient);
             if (values == null || values.Count == 0 || float.IsNaN(values[0]) || float.IsInfinity(values[0]))
             {
                 return;
             }
 
-            procs.Append('\n').Append(Language.GetString(item.nameToken)).Append(": ");
-            if (def.chanceScaling == ItemStatsDef.ChanceScaling.Health)
+            List<float>? plain = luck != 0f ? def.calculateValuesNew(0f, count, coefficient) : null;
+            string? share = plain != null && plain.Count > 0 && !float.IsNaN(plain[0]) && !float.IsInfinity(plain[0])
+                ? ProcValue(def, values[0] - plain[0], true)
+                : null;
+            procs.Append('\n').Append(Language.GetString(item.nameToken)).Append(": ").Append(ProcValue(def, values[0], false));
+            AppendToCap(procs, def, coefficient);
+            if (share != null && share != ProcValue(def, 0f, true))
             {
-                procs.Append("<style=cIsHealing>").Append(values[0].ToString("0.#", CultureInfo.InvariantCulture)).Append(" HP</style>");
-                return;
+                procs.Append("\n<style=cStack>  From Luck:</style> ").Append(share);
+            }
+        }
+
+        // Signed for luck's share, with a plus on gains, and 0 for a sliver either way
+        private static string ProcValue(ItemStatsDef def, float value, bool signed)
+        {
+            CultureInfo c = CultureInfo.InvariantCulture;
+            bool health = def.chanceScaling == ItemStatsDef.ChanceScaling.Health;
+            string number = (health ? value : value * 100f).ToString("0.#", c);
+            if (number.TrimStart('-') == "0")
+            {
+                number = "0";
+            }
+            else if (signed && value > 0f)
+            {
+                number = "+" + number;
             }
 
-            procs.Append("<style=cIsDamage>").Append((values[0] * 100f).ToString("0.#", CultureInfo.InvariantCulture)).Append("%</style>");
+            return health ? "<style=cIsHealing>" + number + " HP</style>" : "<style=cIsDamage>" + number + "%</style>";
+        }
+
+        private static void AppendToCap(StringBuilder procs, ItemStatsDef def, float coefficient)
+        {
+            if (def.chanceScaling == ItemStatsDef.ChanceScaling.Health)
+            {
+                return;
+            }
 
             // Stacks for a sure proc, as LookingGlass counts them, Runic Lens tops out at 75%
             float cap = def.chanceScaling == ItemStatsDef.ChanceScaling.Linear ? 1f

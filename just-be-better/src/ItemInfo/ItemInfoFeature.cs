@@ -20,6 +20,7 @@ namespace JustBeBetter.ItemInfo
                 new HoverDetails(settings, log),
                 new InspectDetails(settings, log),
                 new PingDetails(settings, log, pings),
+                new AllyCardDetails(settings, log),
             };
         }
 

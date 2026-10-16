@@ -9,6 +9,9 @@ namespace JustBeBetter.Sounds
     {
         internal const string Chime = "Play_UI_equipment_activate";
 
+        // War Horn's horn, played by the Energized buff's effect each time equipment is used
+        internal const string WarHorn = "Play_item_proc_warhorn";
+
         // Also played by REX's BurrowDash on its own body
         // The equipment's comes from an effect emitter
         internal const string Fruit = "Play_item_use_fruit";
@@ -61,6 +64,8 @@ namespace JustBeBetter.Sounds
         private static readonly HashSet<uint> Ids = BuildIds();
 
         internal static uint ChimeId { get; } = Id(Chime);
+
+        internal static uint WarHornId { get; } = Id(WarHorn);
 
         internal static uint FruitId { get; } = Id(Fruit);
 

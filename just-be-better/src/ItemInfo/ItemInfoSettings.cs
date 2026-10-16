@@ -33,7 +33,7 @@ namespace JustBeBetter.ItemInfo
                 "Item Stats",
                 true,
                 "Adds the item's worked-out stats under the description, such as your block chance from Tougher "
-                + "Times. Covers the game's own items.");
+                + "Times. Covers the game's own items, Aetherium's, and other mods' where their stats can be read.");
 
             CapChance = config.Bind(
                 Section,
@@ -69,6 +69,13 @@ namespace JustBeBetter.ItemInfo
                 "Pinging a multishop's \"?\" item shows what it really is. This reveals what the game hides on "
                 + "purpose.");
 
+            AllyCardInfo = config.Bind(
+                Section,
+                "Ally Card Info",
+                true,
+                "Shows what an ally does when you point at its card in the ally list, a drone's own text or the "
+                + "item, skill or artifact behind a summon. The cursor is free while the scoreboard is open.");
+
             enabledAtLaunch = Enabled.Value;
         }
 
@@ -87,6 +94,8 @@ namespace JustBeBetter.ItemInfo
         internal ConfigEntry<bool> OtherPlayersPings { get; }
 
         internal ConfigEntry<bool> ShowHiddenItems { get; }
+
+        internal ConfigEntry<bool> AllyCardInfo { get; }
 
         // Enabled counts as it was at launch like every section's, and off means the game's text in the pickers too
         internal bool FullText => enabledAtLaunch && FullDescriptions.Value;

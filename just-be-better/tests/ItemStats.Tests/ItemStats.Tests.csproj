@@ -40,6 +40,14 @@
     <Compile Include="$(Src)\..\Loading\IntroRules.cs" Link="Src\IntroRules.cs" />
     <Compile Include="$(Src)\..\ChestTweaks\ChestKinds.cs" Link="Src\ChestKinds.cs" />
     <Compile Include="$(Src)\..\ToggleFire\FireLatch.cs" Link="Src\FireLatch.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\CardList.cs" Link="Src\CardList.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\AllyKinds.cs" Link="Src\AllyKinds.cs" />
+    <Compile Include="$(Src)\..\Sounds\EquipmentEvents.cs" Link="Src\EquipmentEvents.cs" />
+    <Compile Include="$(Src)\StackText.cs" Link="Src\StackText.cs" />
+    <Compile Include="$(Src)\ModdedStats.cs" Link="Src\ModdedStats.cs" />
+    <Compile Include="$(Src)\ModEntries.cs" Link="Src\ModEntries.cs" />
+    <Compile Include="$(Src)\ModBinding.cs" Link="Src\ModBinding.cs" />
+    <Compile Include="$(Src)\AetheriumEntries.cs" Link="Src\AetheriumEntries.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->

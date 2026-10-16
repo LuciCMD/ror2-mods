@@ -66,6 +66,7 @@ namespace JustBeBetter
             general.Part(settings.Sounds.Enabled);
             general.Percent(settings.Sounds.ChimeVolume);
             general.Percent(settings.Sounds.SoundVolume);
+            general.Percent(settings.Sounds.WarHornVolume);
 
             var pickers = new Page("Item Pickers", log);
             Pickers.PickerSettings picker = settings.Pickers;
@@ -106,6 +107,7 @@ namespace JustBeBetter
             items.CheckBox(info.PingInfo);
             items.CheckBox(info.OtherPlayersPings, () => info.PingInfo.Value, "Pings from Other Players");
             items.CheckBox(info.ShowHiddenItems, () => info.PingInfo.Value);
+            items.CheckBox(info.AllyCardInfo);
 
             // Not tied to Show Pickup Cards, void and ping cards still show with it off
             items.Part(settings.Notifications.Enabled);

@@ -18,6 +18,9 @@ namespace JustBeBetter.ItemStats
         private const string Faded = "#808080";
 
         private static readonly HashSet<int> brokenStats = new HashSet<int>();
+
+        // Items outside the table, logged once each with where their stats came from
+        private static readonly HashSet<int> moddedLogged = new HashSet<int>();
         private static readonly MethodInfo? cooldownScaleMethod =
             typeof(Inventory).GetMethod("CalculateEquipmentCooldownScale", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
@@ -137,7 +140,10 @@ namespace JustBeBetter.ItemStats
                 }
 
                 case DroneDef drone:
-                    return fullDescription ? SwapIn(gameText, drone.pickupToken, DroneText(drone, true)) : gameText;
+                {
+                    string full = fullDescription ? DroneText(drone, true) : string.Empty;
+                    return full.Length > 0 ? SwapIn(gameText, drone.pickupToken, full) : gameText;
+                }
                 default:
                     return null;
             }
@@ -162,19 +168,47 @@ namespace JustBeBetter.ItemStats
 
         private static string SwapIn(string gameText, string shortToken, string full)
         {
-            string shortText = Language.GetString(shortToken);
+            // A modded drone can leave its short token unset, and GetString throws on null
+            string shortText = string.IsNullOrEmpty(shortToken) ? string.Empty : Language.GetString(shortToken);
             return !string.IsNullOrEmpty(shortText) && gameText.Contains(shortText) ? gameText.Replace(shortText, full) : full;
         }
 
         // Drones fill their tokens unevenly, some only the skill text, some only the description
-        private static string DroneText(DroneDef drone, bool fullDescription)
+        internal static string DroneText(DroneDef drone, bool fullDescription)
         {
-            if (fullDescription && !Language.IsTokenInvalid(drone.skillDescriptionToken))
+            string? token = DroneToken(drone.skillDescriptionToken, drone.descriptionToken, drone.pickupToken, fullDescription, HasText);
+            return token != null ? Language.GetString(token) : string.Empty;
+        }
+
+        // An ally's summoner, an item, equipment, skill or artifact, empty when the game has text for neither token
+        internal static string TokenText(string? full, string? brief, bool fullDescription)
+        {
+            string? token = DroneToken(null, full, brief, fullDescription, HasText);
+            return token != null ? Language.GetString(token) : string.Empty;
+        }
+
+        // Not IsTokenInvalid, which only asks the current language while GetString falls back to English
+        // GetString hands back the token itself when no language has it
+        private static bool HasText(string token)
+        {
+            string text = Language.GetString(token);
+            return !string.IsNullOrEmpty(text) && text != token;
+        }
+
+        // The first token the game has text for, so the Bomber's missing short text falls back to its description
+        // instead of showing DRONE_BOMBER_FUNCTION, and null when none has any
+        internal static string? DroneToken(string? skill, string? full, string? brief, bool fullDescription, Func<string, bool> known)
+        {
+            string?[] order = fullDescription ? new[] { skill, full, brief } : new[] { brief, full, skill };
+            foreach (string? token in order)
             {
-                return Language.GetString(drone.skillDescriptionToken);
+                if (!string.IsNullOrEmpty(token) && known(token!))
+                {
+                    return token;
+                }
             }
 
-            return Description(drone.descriptionToken, drone.pickupToken, fullDescription);
+            return null;
         }
 
         private static bool IsCorrupted(ItemIndex item, Inventory inventory)
@@ -270,42 +304,75 @@ namespace JustBeBetter.ItemStats
         private static void AppendStats(StringBuilder text, ItemDef item, CharacterMaster master, int from, int to, string arrow, bool firstStackHeading)
         {
             int key = (int)item.itemIndex;
-            if (to <= 0 || failed || brokenStats.Contains(key)
-                || !ItemDefinitions.allItemDefinitions.TryGetValue(key, out ItemStatsDef? def)
-                || def.descriptions.Count == 0)
+            if (to <= 0 || failed || brokenStats.Contains(key))
             {
                 return;
             }
 
-            // Scrap only does something with the item that turns scrap into stats
-            if (def.isScrap && master.inventory.GetItemCountEffective(DLC3Content.Items.StatsFromScrap) <= 0)
-            {
-                return;
-            }
-
+            // A modded item's entry is read from another mod or its text, so it's inside the try with the rest
             try
             {
-                List<float>? after = Values(def, master, to);
-                if (after == null)
+                if (!ItemDefinitions.allItemDefinitions.TryGetValue(key, out ItemStatsDef? def))
+                {
+                    def = ModdedStats.For(item, out string source);
+                    foreach (string problem in ModdedStats.TakeProblems())
+                    {
+                        log?.LogWarning($"A modded item's stats couldn't be tied to its mod, it falls back to LookingGlass or its text: {problem}");
+                    }
+
+                    if (moddedLogged.Add(key))
+                    {
+                        log?.LogInfo(def != null
+                            ? $"Stats for {item.name} come from {source}"
+                            : $"No stats for {item.name}, its description has no plain per-stack values");
+                    }
+                }
+
+                if (def == null || def.descriptions.Count == 0)
                 {
                     return;
                 }
 
-                List<float>? now = from > 0 && from != to ? Values(def, master, from) : null;
+                // Scrap only does something with the item that turns scrap into stats
+                if (def.isScrap && master.inventory.GetItemCountEffective(DLC3Content.Items.StatsFromScrap) <= 0)
+                {
+                    return;
+                }
+
                 var lines = new StringBuilder("\n");
                 if (from == 0 && firstStackHeading)
                 {
                     lines.Append("\n<style=cStack>With this item:</style>");
                 }
 
-                AppendLines(lines, def, now, after, arrow);
-                text.Append(lines);
+                if (AppendStackLines(lines, def, master, from, to, arrow))
+                {
+                    text.Append(lines);
+                }
             }
             catch (Exception e)
             {
                 brokenStats.Add(key);
                 log?.LogWarning($"Couldn't work out the stats for {item.name}, its tooltip shows the description only: {e}");
             }
+        }
+
+        // The plain chance on the line, and what the holder's luck makes of it on its own line below
+        private static bool AppendStackLines(StringBuilder lines, ItemStatsDef def, CharacterMaster master, int from, int to, string arrow)
+        {
+            List<float>? after = Values(def, master, to, master.luck);
+            if (after == null)
+            {
+                return false;
+            }
+
+            bool held = from > 0 && from != to;
+            List<float>? now = held ? Values(def, master, from, master.luck) : null;
+            bool lucky = master.luck != 0f && def.calculateValuesFlat == null && def.calculateValuesNew != null;
+            List<float>? afterPlain = lucky ? Values(def, master, to, 0f) : null;
+            List<float>? nowPlain = lucky && held ? Values(def, master, from, 0f) : null;
+            AppendLines(lines, def, now, after, arrow, nowPlain, afterPlain);
+            return true;
         }
 
         // Equipment doesn't stack, so its lines are the values it has, as LookingGlass shows them
@@ -372,13 +439,15 @@ namespace JustBeBetter.ItemStats
 
             try
             {
+                float luck = master != null ? master.luck : 0f;
                 List<float>? values = def.calculateValuesFlat != null
                     ? def.calculateValuesFlat(0)
-                    : def.calculateValuesNew?.Invoke(master != null ? master.luck : 0f, 1, 1f);
+                    : def.calculateValuesNew?.Invoke(luck, 1, 1f);
+                List<float>? plain = def.calculateValuesFlat == null && luck != 0f ? def.calculateValuesNew?.Invoke(0f, 1, 1f) : null;
                 if (values != null)
                 {
                     var lines = new StringBuilder("\n");
-                    AppendLines(lines, def, null, values, string.Empty);
+                    AppendLines(lines, def, null, values, string.Empty, null, plain);
                     text.Append(lines);
                 }
             }
@@ -395,7 +464,8 @@ namespace JustBeBetter.ItemStats
         }
 
         // In the order LookingGlass tries them
-        private static List<float>? Values(ItemStatsDef def, CharacterMaster master, int count)
+        // Luck only reaches a chance through calculateValuesNew, so the rest read the same at any luck
+        private static List<float>? Values(ItemStatsDef def, CharacterMaster master, int count, float luck)
         {
             if (def.calculateValuesFlat != null)
             {
@@ -404,7 +474,7 @@ namespace JustBeBetter.ItemStats
 
             if (def.calculateValuesNew != null)
             {
-                return def.calculateValuesNew(master.luck, count, 1f);
+                return def.calculateValuesNew(luck, count, 1f);
             }
 
             if (def.calculateValues != null)
@@ -416,7 +486,9 @@ namespace JustBeBetter.ItemStats
             return def.calculateValuesBody != null && body ? def.calculateValuesBody(body, count) : null;
         }
 
-        private static void AppendLines(StringBuilder text, ItemStatsDef def, List<float>? now, List<float> after, string arrow)
+        // now and after are the holder's values, luck included, and the plain ones at no luck give the From Luck line
+        private static void AppendLines(
+            StringBuilder text, ItemStatsDef def, List<float>? now, List<float> after, string arrow, List<float>? nowPlain, List<float>? afterPlain)
         {
             int lines = Math.Min(def.descriptions.Count, Math.Min(def.valueTypes.Count, def.measurementUnits.Count));
             for (int i = 0; i < lines; i++)
@@ -430,16 +502,50 @@ namespace JustBeBetter.ItemStats
                 string style = Style(def.valueTypes[i]);
                 string? next = Format(after[i], def.measurementUnits[i]);
                 string? current = now != null && i < now.Count ? Format(now[i], def.measurementUnits[i]) : null;
-                if (current != null && next != null && current != next)
-                {
-                    AppendValue(text, style, current);
-                    text.Append(arrow);
-                }
+                AppendChange(text, style, current, next, arrow);
 
-                if (next != null)
+                // Only under a value luck changes, so a chance's line gets one and its damage line doesn't
+                // Either end counts, as a stack that caps both still had luck's share before it
+                ItemStatsDef.MeasurementUnits unit = def.measurementUnits[i];
+                string? nextLuck = afterPlain != null && i < afterPlain.Count ? Signed(after[i] - afterPlain[i], unit) : null;
+                string? currentLuck = now != null && nowPlain != null && i < now.Count && i < nowPlain.Count
+                    ? Signed(now[i] - nowPlain[i], unit)
+                    : null;
+                string? none = Signed(0f, unit);
+                if (nextLuck != null && (nextLuck != none || (currentLuck != null && currentLuck != none)))
                 {
-                    AppendValue(text, style, next);
+                    text.Append("\n<style=cStack>  From Luck:</style> ");
+                    AppendChange(text, style, currentLuck, nextLuck, arrow);
                 }
+            }
+        }
+
+        // A plus on gains, so luck's share reads as an addition to the value above
+        private static string? Signed(float value, ItemStatsDef.MeasurementUnits unit)
+        {
+            string? text = Format(value, unit);
+            string? zero = Format(0f, unit);
+
+            // A sliver either way rounds to 0, and newer .NET writes a small negative as -0
+            if (text == null || text.TrimStart('-') == zero)
+            {
+                return text == null ? null : zero;
+            }
+
+            return value > 0f ? "+" + text : text;
+        }
+
+        private static void AppendChange(StringBuilder text, string style, string? current, string? next, string arrow)
+        {
+            if (current != null && next != null && current != next)
+            {
+                AppendValue(text, style, current);
+                text.Append(arrow);
+            }
+
+            if (next != null)
+            {
+                AppendValue(text, style, next);
             }
         }
 
@@ -499,7 +605,14 @@ namespace JustBeBetter.ItemStats
         }
 
         // Null for a value that can't be shown, a plain string unit has none
+        // A sliver below zero rounds to 0, and some runtimes keep its sign as -0
         private static string? Format(float value, ItemStatsDef.MeasurementUnits unit)
+        {
+            string? text = FormatSigned(value, unit);
+            return text != null && value < 0f && text == "-" + FormatSigned(0f, unit) ? text.Substring(1) : text;
+        }
+
+        private static string? FormatSigned(float value, ItemStatsDef.MeasurementUnits unit)
         {
             if (float.IsNaN(value) || float.IsInfinity(value))
             {
