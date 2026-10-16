@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Checks the stat table outside the game, run it from the repo root as dotnet run with the project tests/ItemStats.Tests -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Game assemblies target an older framework, and the stub stands in for BepInEx's logger -->
+    <NoWarn>$(NoWarn);CS1701;CS1702;MSB3277;CS8632;CS0436</NoWarn>
+    <GameManaged>D:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed</GameManaged>
+    <Src>$(MSBuildThisFileDirectory)..\..\src\ItemStats</Src>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="$(Src)\ItemStatText.cs" Link="Src\ItemStatText.cs" />
+    <Compile Include="$(Src)\ItemStatsDef.cs" Link="Src\ItemStatsDef.cs" />
+    <Compile Include="$(Src)\Utils.cs" Link="Src\Utils.cs" />
+    <Compile Include="$(Src)\ItemDefinitions.cs" Link="Src\ItemDefinitions.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\PickupChanges.cs" Link="Src\PickupChanges.cs" />
+    <Compile Include="$(Src)\..\Pickers\WindowFit.cs" Link="Src\WindowFit.cs" />
+    <Compile Include="$(Src)\..\Pickers\PickerSort.cs" Link="Src\PickerSort.cs" />
+    <Compile Include="$(Src)\..\Pickers\OpenCounts.cs" Link="Src\OpenCounts.cs" />
+    <Compile Include="$(Src)\..\InventorySort\InventoryOrder.cs" Link="Src\InventoryOrder.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\PingQueue.cs" Link="Src\PingQueue.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\PingCards.cs" Link="Src\PingCards.cs" />
+    <Compile Include="$(Src)\..\Cooldowns\CooldownRules.cs" Link="Src\CooldownRules.cs" />
+    <Compile Include="$(Src)\..\BuffInfo\BuffText.cs" Link="Src\BuffText.cs" />
+    <Compile Include="$(Src)\..\BuffInfo\BuffDefinitions.cs" Link="Src\BuffDefinitions.cs" />
+    <Compile Include="$(Src)\..\SkillInfo\SkillText.cs" Link="Src\SkillText.cs" />
+    <Compile Include="$(Src)\..\SkillInfo\ProcCoefficientData.cs" Link="Src\ProcCoefficientData.cs" />
+    <Compile Include="$(Src)\..\Shared\CooldownText.cs" Link="Src\CooldownText.cs" />
+    <Compile Include="$(Src)\..\StatsDisplay\StatTemplate.cs" Link="Src\StatTemplate.cs" />
+    <Compile Include="$(Src)\..\StatsDisplay\StatMath.cs" Link="Src\StatMath.cs" />
+    <Compile Include="$(Src)\..\StatsDisplay\ComboMeter.cs" Link="Src\ComboMeter.cs" />
+    <Compile Include="$(Src)\..\Scoreboard\CounterText.cs" Link="Src\CounterText.cs" />
+    <Compile Include="$(Src)\..\Notifications\CardRules.cs" Link="Src\CardRules.cs" />
+    <Compile Include="$(Src)\..\ImmuneBar\ImmuneRules.cs" Link="Src\ImmuneRules.cs" />
+    <Compile Include="$(Src)\..\Loading\IntroRules.cs" Link="Src\IntroRules.cs" />
+    <Compile Include="$(Src)\..\ChestTweaks\ChestKinds.cs" Link="Src\ChestKinds.cs" />
+    <Compile Include="$(Src)\..\ToggleFire\FireLatch.cs" Link="Src\FireLatch.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\CardList.cs" Link="Src\CardList.cs" />
+    <Compile Include="$(Src)\..\ItemInfo\AllyKinds.cs" Link="Src\AllyKinds.cs" />
+    <Compile Include="$(Src)\..\Sounds\EquipmentEvents.cs" Link="Src\EquipmentEvents.cs" />
+    <Compile Include="$(Src)\StackText.cs" Link="Src\StackText.cs" />
+    <Compile Include="$(Src)\ModdedStats.cs" Link="Src\ModdedStats.cs" />
+    <Compile Include="$(Src)\ModEntries.cs" Link="Src\ModEntries.cs" />
+    <Compile Include="$(Src)\ModBinding.cs" Link="Src\ModBinding.cs" />
+    <Compile Include="$(Src)\AetheriumEntries.cs" Link="Src\AetheriumEntries.cs" />
+    <Compile Include="$(Src)\..\Shared\Logs.cs" Link="Src\Logs.cs" />
+  </ItemGroup>
+
+  <!-- Loaded from the game folder at run time, see Program.Main -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>GameManaged</_Parameter1>
+      <_Parameter2>$(GameManaged)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>SourceRoot</_Parameter1>
+      <_Parameter2>$(Src)\..</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RoR2" HintPath="$(GameManaged)\RoR2.dll" Private="false" />
+    <Reference Include="UnityEngine" HintPath="$(GameManaged)\UnityEngine.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(GameManaged)\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="HGCSharpUtils" HintPath="$(GameManaged)\HGCSharpUtils.dll" Private="false" />
+    <Reference Include="com.unity.multiplayer-hlapi.Runtime" HintPath="$(GameManaged)\com.unity.multiplayer-hlapi.Runtime.dll" Private="false" />
+    <Reference Include="Unity.Addressables" HintPath="$(GameManaged)\Unity.Addressables.dll" Private="false" />
+    <Reference Include="Unity.ResourceManager" HintPath="$(GameManaged)\Unity.ResourceManager.dll" Private="false" />
+    <Reference Include="UnityEngine.PhysicsModule" HintPath="$(GameManaged)\UnityEngine.PhysicsModule.dll" Private="false" />
+    <Reference Include="KinematicCharacterController" HintPath="$(GameManaged)\KinematicCharacterController.dll" Private="false" />
+  </ItemGroup>
+
+</Project>
