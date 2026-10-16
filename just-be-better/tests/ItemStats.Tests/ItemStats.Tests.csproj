@@ -39,6 +39,7 @@
     <Compile Include="$(Src)\..\ImmuneBar\ImmuneRules.cs" Link="Src\ImmuneRules.cs" />
     <Compile Include="$(Src)\..\Loading\IntroRules.cs" Link="Src\IntroRules.cs" />
     <Compile Include="$(Src)\..\ChestTweaks\ChestKinds.cs" Link="Src\ChestKinds.cs" />
+    <Compile Include="$(Src)\..\ToggleFire\FireLatch.cs" Link="Src\FireLatch.cs" />
   </ItemGroup>
 
   <!-- Loaded from the game folder at run time, see Program.Main -->

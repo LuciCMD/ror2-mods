@@ -82,6 +82,7 @@ internal static partial class Program
         RunPingEdge();
         RunTransformEdge();
         RunConfigNames();
+        RunRiskOfOptionsLayout();
         RunCooldowns();
         RunCooldownEdge();
         RunBuffs();
@@ -100,6 +101,8 @@ internal static partial class Program
         RunIntroSkipEdge();
         RunChestTweaks();
         RunChestTweaksEdge();
+        RunToggleFire();
+        RunToggleFireEdge();
     }
 
     private static void Test(string name, Action body)

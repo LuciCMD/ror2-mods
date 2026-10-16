@@ -16,6 +16,7 @@ using JustBeBetter.Scoreboard;
 using JustBeBetter.SkillInfo;
 using JustBeBetter.StatsDisplay;
 using JustBeBetter.Sounds;
+using JustBeBetter.ToggleFire;
 
 namespace JustBeBetter
 {
@@ -56,6 +57,7 @@ namespace JustBeBetter
                 SavesSection,
                 "Lets the host save a run and continue it later from the lobby.");
             Cursor = new CursorSettings(config);
+            ToggleFire = new ToggleFireSettings(config);
             Loading = new LoadingSettings(config);
             Sounds = new SoundSettings(config);
 
@@ -101,15 +103,17 @@ namespace JustBeBetter
 
         internal CursorSettings Cursor { get; }
 
+        internal ToggleFireSettings ToggleFire { get; }
+
         internal LoadingSettings Loading { get; }
 
         internal SoundSettings Sounds { get; }
 
         internal ConfigEntry<int> RepeatSurvivors { get; }
 
-        internal static ConfigEntry<bool> BindEnabled(ConfigFile config, string section, string description)
+        internal static ConfigEntry<bool> BindEnabled(ConfigFile config, string section, string description, bool on = true)
         {
-            return config.Bind(section, "Enabled", true, description + " Applies from the next launch.");
+            return config.Bind(section, "Enabled", on, description + " Applies from the next launch.");
         }
     }
 }

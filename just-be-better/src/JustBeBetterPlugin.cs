@@ -23,6 +23,7 @@ using JustBeBetter.Shared;
 using JustBeBetter.SkillInfo;
 using JustBeBetter.StatsDisplay;
 using JustBeBetter.Sounds;
+using JustBeBetter.ToggleFire;
 
 namespace JustBeBetter
 {
@@ -76,6 +77,7 @@ namespace JustBeBetter
             StartPart(settings.LobbyEnabled, Settings.LobbySection, log => new LobbyFeature(settings.RepeatSurvivors, log));
             StartPart(settings.SavesEnabled, Settings.SavesSection, log => new SavesFeature(gameObject, log));
             StartPart(settings.Cursor.Enabled, CursorSettings.Section, log => new CursorRules(settings.Cursor, log));
+            StartPart(settings.ToggleFire.Enabled, ToggleFireSettings.Section, log => new ToggleFireFeature(settings.ToggleFire, log));
             StartPart(settings.Sounds.Enabled, SoundSettings.Section, log => new EquipmentSounds(settings.Sounds, log));
         }
 
