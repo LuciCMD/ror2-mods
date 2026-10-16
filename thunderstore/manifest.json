@@ -1,0 +1,10 @@
+{
+    "name": "Just_Be_Better",
+    "version_number": "0.1.0",
+    "website_url": "https://github.com/LuciCMD/ror2-mods",
+    "description": "Quality of life in one mod: item picker search and safety, item, skill and buff info, saved runs, a lobby for big rosters, chest outlines, faster loading and more. Every part can be turned off.",
+    "dependencies": [
+        "bbepis-BepInExPack-5.4.2122",
+        "RiskofThunder-HookGenPatcher-1.2.9"
+    ]
+}

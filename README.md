@@ -65,7 +65,9 @@ Volume sliders for the equipment activation chime, equipment sounds and War Horn
 
 ## Installing
 
-Put `Just_Be_Better.dll` in `BepInEx\plugins\` and `Just_Be_Better.Patcher.dll` in `BepInEx\patchers\`. The patcher is only used by the Loading part, for the bundle cache and the startup timing.
+Download the latest zip from [Releases](https://github.com/LuciCMD/ror2-mods/releases/latest) and import it in r2modman with **Settings > Import local mod**.
+
+To install by hand, put `Just_Be_Better.dll` in `BepInEx\plugins\` and `Just_Be_Better.Patcher.dll` in `BepInEx\patchers\`. The patcher is only used by the Loading part, for the bundle cache and the startup timing.
 
 | Dependency          | Needed for                  |
 |---------------------|-----------------------------|
